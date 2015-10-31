@@ -20,5 +20,9 @@
   <definition name="uncaughtException" extends="default">
     <put-attribute name="body" value="/WEB-INF/views/uncaughtException.jspx" />
   </definition>
+  
+  <definition name="userRegistration" extends="default">
+    <put-attribute name="body" value="/WEB-INF/views/userRegistration.jspx" />
+  </definition>
 
 </tiles-definitions>

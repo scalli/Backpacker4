@@ -23,8 +23,7 @@
 	
 	<div class="col-sm-offset-4 col-sm-2">
 		<!-- "CREATE" button ( HREF link ) -->
-		<!-- MOET NOG WIJZIGEN, MAG GEEN PAGINA ONDER ADMIN ZIJN!! -->
-		<a role="button" class="btn btn-default btn-block" href="">REGISTER WERKT NOG NIET!</a>
+		<a role="button" class="btn btn-default btn-block" href="register/form">REGISTER</a>
 	</div>
 
 	<sec:authorize access="hasRole('ROLE_USER')">
