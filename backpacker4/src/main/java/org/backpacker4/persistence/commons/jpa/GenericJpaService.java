@@ -182,6 +182,7 @@ public abstract class GenericJpaService<T, PK extends java.io.Serializable> {
 	 * @return
 	 */
 	public T save(final T entityToSave) {
+		System.out.println("De entity to save is: " + entityToSave.toString());
 		// JPA operation definition 
 		JpaOperation operation = new JpaOperation() {
 			@Override

@@ -62,7 +62,10 @@ public class UserRolesServiceImpl implements UserRolesService {
 		}
 		UserRolesEntity userRolesEntity = new UserRolesEntity();
 		userRolesServiceMapper.mapUserRolesToUserRolesEntity(userRoles, userRolesEntity);
+		System.out.println("De userrolesServiceMapper heeft zijn werk gedaan in create!");
+		System.out.println("De username in de entity is nog steeds: " + userRolesEntity.getAppuser().getUsername());
 		UserRolesEntity userRolesEntitySaved = userRolesPersistence.save(userRolesEntity);
+		System.out.println("Na de persistence is de username in de entity: " + userRolesEntitySaved.getAppuser().getUsername());
 		return userRolesServiceMapper.mapUserRolesEntityToUserRoles(userRolesEntitySaved);
 	}
 
@@ -70,6 +73,7 @@ public class UserRolesServiceImpl implements UserRolesService {
 	public UserRoles update(UserRoles userRoles) {
 		UserRolesEntity userRolesEntity = userRolesPersistence.load(userRoles.getIduserRoles());
 		userRolesServiceMapper.mapUserRolesToUserRolesEntity(userRoles, userRolesEntity);
+		System.out.println("De userrolesServiceMapper heeft zijn werk gedaan in update!");
 		UserRolesEntity userRolesEntitySaved = userRolesPersistence.save(userRolesEntity);
 		return userRolesServiceMapper.mapUserRolesEntityToUserRoles(userRolesEntitySaved);
 	}

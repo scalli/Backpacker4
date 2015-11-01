@@ -169,6 +169,7 @@ public class UserRolesController extends AbstractController {
 		log("Action 'create'");
 		try {
 			if (!bindingResult.hasErrors()) {
+				System.out.println("User roles to create: " + userRoles.toString());
 				UserRoles userRolesCreated = userRolesService.create(userRoles); 
 				model.addAttribute(MAIN_ENTITY_NAME, userRolesCreated);
 

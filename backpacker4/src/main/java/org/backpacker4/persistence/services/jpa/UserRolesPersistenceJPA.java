@@ -7,6 +7,8 @@ package org.backpacker4.persistence.services.jpa;
 
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 
@@ -35,6 +37,14 @@ public class UserRolesPersistenceJPA extends GenericJpaService<UserRolesEntity, 
 		return super.load( iduserRoles );
 	}
 
+	
+	@Override
+	public UserRolesEntity save( UserRolesEntity entityToSave ){
+		System.out.println("De username in de entity in de persistence is nog steeds: " + entityToSave.getAppuser().getUsername());
+		System.out.println("De entity to save is: " + entityToSave.toString());
+		return super.save(entityToSave);
+}
+	
 	@Override
 	public boolean delete( Integer iduserRoles ) {
 		return super.delete( iduserRoles );
