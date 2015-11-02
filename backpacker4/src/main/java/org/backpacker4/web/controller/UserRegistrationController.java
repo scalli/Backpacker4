@@ -4,10 +4,24 @@
  */
 package org.backpacker4.web.controller;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -16,6 +30,23 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import javax.annotation.Resource;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 //--- Common classes
@@ -38,10 +69,11 @@ import org.backpacker4.business.service.PhotoService;
 
 //--- List Items 
 import org.backpacker4.web.listitem.PositionListItem;
+import org.backpacker4.bean.Appuser;
 import org.backpacker4.web.listitem.PhotoListItem;
 
 /**
- * Spring MVC controller for 'Appuser' management.
+ * Spring MVC controller for 'Registration Appuser' management.
  */
 @Controller
 @RequestMapping("/register")
@@ -190,7 +222,8 @@ public class UserRegistrationController extends AbstractController {
 	 * @return
 	 */
 	@RequestMapping(value = "/create" ) // GET or POST
-	public String create(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest) {
+	public String create(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest
+			, @RequestParam(value = "image", required = false) MultipartFile image) {
 		log("Action 'create'");
 		try {
 			if (!bindingResult.hasErrors()) {
@@ -205,8 +238,63 @@ public class UserRegistrationController extends AbstractController {
 				System.out.println(userroles.toString());
 				userRolesService.create(userroles); 
 				
-				model.addAttribute(MAIN_ENTITY_NAME, appuserCreated);
+				//Add the image to Database column photo
+				if (!image.isEmpty()) {
+					try {
+							validateImage(image);
+							System.out.println("image validation (jpg) succeeded...");
+					} catch (RuntimeException re) {
+					bindingResult.reject(re.getMessage());
+					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+					}
+					 
+					try {
+						Photo afbeelding = new Photo();
+						afbeelding.setId(Long.parseLong(String.valueOf(0)));
+						afbeelding.setComment("");
+						//dummy value for position
+						afbeelding.setIdPosition(Long.parseLong(String.valueOf(1)));
+						afbeelding.setDescription(appuserCreated.getUsername());
+						afbeelding.setThumbnail("");
+						afbeelding.setFullphoto("");
+						Calendar cal = Calendar.getInstance();
+						afbeelding.setDatetaken(cal.getTime());
+						System.out.println("afbeelding created ...");
+						
+						//Add photo to database
+						Photo afbeeldingSaved = photoService.create(afbeelding);
+						System.out.println("afbeelding saved ...");
+						
+						afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+						afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+						
+						//Convert the full image to thumbnail
+						byte [] byteArr=image.getBytes();
+						// convert byte array to BufferedImage
+						InputStream in = new ByteArrayInputStream(byteArr);
+						BufferedImage buffimg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+						buffimg = ImageIO.read(in);
+						Image img = buffimg;
+						
+						BufferedImage thumbCreated = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+						thumbCreated.createGraphics().drawImage(img.getScaledInstance(100, 100, Image.SCALE_SMOOTH),0,0,null);
 
+						//Save the bufferedimage
+						File outputfile = new File(servletContext.getRealPath("/") + "/"
+								+ afbeeldingSaved.getThumbnail() + ".jpg");
+					    ImageIO.write(thumbCreated, "png", outputfile);
+						
+						photoService.save(afbeeldingSaved);
+						
+						saveImage( image, afbeeldingSaved);
+					} catch (IOException e) {
+					bindingResult.reject(e.getMessage());
+					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+					}
+					}
+				
+				model.addAttribute(MAIN_ENTITY_NAME, appuserCreated);
+				
 				//---
 				messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
 				return redirectToForm1(httpServletRequest, appuserCreated.getId() );
@@ -296,5 +384,53 @@ public class UserRegistrationController extends AbstractController {
 	 */
 	private String getFormURL1(HttpServletRequest httpServletRequest, Object... idParts) {
 		return "/" + "register" + "/form/" + encodeUrlPathSegments(httpServletRequest, idParts );
+	}
+	
+	private void validateImage(MultipartFile image) {
+		if (!image.getContentType().equals("image/jpeg")) {
+		throw new RuntimeException("Only JPG images are accepted");
+		}
+		}
+	
+	@Autowired
+    private ServletContext servletContext;
+	
+	private void saveImage(MultipartFile image, Photo afbeelding)
+			throws RuntimeException, IOException {
+			try {
+			File file = new File(servletContext.getRealPath("/") + "/"
+			+ afbeelding.getFullphoto() + ".jpg");
+			 
+			//Save the full photo
+			FileUtils.writeByteArrayToFile(file, image.getBytes());
+			System.out.println("Go to the location:  " + file.toString()
+			+ " on your computer and verify that the image has been stored.");
+			
+			//Convert the full image to thumbnail
+			byte [] byteArr=image.getBytes();
+			// convert byte array to BufferedImage
+			InputStream in = new ByteArrayInputStream(byteArr);
+			BufferedImage buffimg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+			buffimg = ImageIO.read(in);
+			Image img = buffimg;
+			
+			BufferedImage thumbCreated = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+			thumbCreated.createGraphics().drawImage(img.getScaledInstance(100, 100, Image.SCALE_SMOOTH),0,0,null);
+
+			//Save the bufferedimage
+			File outputfile = new File(servletContext.getRealPath("/") + "/"
+					+ afbeelding.getThumbnail() + ".jpg");
+		    ImageIO.write(thumbCreated, "png", outputfile);
+
+			} catch (IOException e) {
+			throw e;
+			}
+			}
+	
+	//add the current user
+	private void addCurrentUser(Model model){	
+		UserDetails userDetails =
+		(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		model.addAttribute("username",userDetails.getUsername());
 	}
 }
