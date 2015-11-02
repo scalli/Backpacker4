@@ -11,4 +11,7 @@
 	<definition extends="default" name="register/form">
 		<put-attribute name="body" value="/WEB-INF/views/register/register_form.jspx" />
 	</definition>
+	<definition extends="default" name="register/form1">
+		<put-attribute name="body" value="/WEB-INF/views/register/register_form1.jsp" />
+	</definition>
 </tiles-definitions>

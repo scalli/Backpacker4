@@ -3,10 +3,12 @@
 
 <div xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:c="http://java.sun.com/jsp/jstl/core"
      xmlns:s="http://www.springframework.org/tags" xmlns:form="http://www.springframework.org/tags/form" 
-     xmlns:util="urn:jsptagdir:/WEB-INF/tags/util" xmlns:input="urn:jsptagdir:/WEB-INF/tags/input" 
+     xmlns:util="urn:jsptagdir:/WEB-INF/tags/util" xmlns:input="urn:jsptagdir:/WEB-INF/tags/input"
+     xmlns:spring="http://www.springframework.org/tags" 
      version="2.0">
 <jsp:directive.page contentType="text/html;charset=UTF-8"/>
 <jsp:output omit-xml-declaration="yes"/>
+
 
 	<div class="container">
 		<fieldset class="col-sm-12 bordure">
@@ -15,7 +17,7 @@
 			<util:message message="${message}" messages="${messages}" />
 			
 	    	<s:url value="${saveAction}" var="url_form_submit" />
-			<form:form class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
+			<form:form onload="getLocation()" class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
 				<form:errors path="*" cssClass="alert alert-danger" element="div" />
 
 <c:if test="${mode != 'create'}">
@@ -101,37 +103,8 @@
 					<label for="image">Image (in JPEG format only):</label>
 					<input name="image" type="file"/>
 				</div>
- 
- 				<!-- DATA FIELD : idPhoto -->
-				<div class="form-group">
-					The field label is defined in the messages file (for i18n)
-					<label for="appuser_idPhoto" class="col-sm-2 control-label"><s:message code="appuser.idPhoto"/></label>
-					<div class="col-sm-10">
-  						<form:select id="appuser_idPhoto" path="idPhoto" cssClass="form-control">
-							<form:option value=""></form:option>
-							<form:options items="${listOfPhotoItems}" itemValue="value" itemLabel="label" />
-						</form:select>
-						<form:errors id="appuser_idPhoto_errors" path="idPhoto" cssClass="label label-danger" />
-
-					</div>
-				</div>
-
-
- 
- 				<!-- DATA FIELD : idPosition -->
-				<div class="form-group">
-					<!-- The field label is defined in the messages file (for i18n) -->
-					<label for="appuser_idPosition" class="col-sm-2 control-label"><s:message code="appuser.idPosition"/></label>
-					<div class="col-sm-10">
-  						<form:select id="appuser_idPosition" path="idPosition" cssClass="form-control">
-							<form:option value=""></form:option>
-							<form:options items="${listOfPositionItems}" itemValue="value" itemLabel="label" />
-						</form:select>
-						<form:errors id="appuser_idPosition_errors" path="idPosition" cssClass="label label-danger" />
-
-					</div>
-				</div>
-
+				
+			
  
 
 				<!-- ACTION BUTTONS -->
@@ -154,6 +127,70 @@
 					</div>
 				</div>
 			</form:form>
+			
+				<p id="demo">Here comes the current position.</p>
+				<div id="mapholder">Empty mapholder</div>
+
+
+<script>
+window.onload=getLocation;
+var x = document.getElementById("demo");
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+function showPosition(position) {
+    x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
+    "<br />Longitude: " + position.coords.longitude; 
+}
+</script>
+
+<script>
+window.onload=getLocation1;
+var x = document.getElementById("demo");
+
+function getLocation1() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition1, showError);
+    } else {
+        x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition1(position) {
+    var latlon = position.coords.latitude + "," + position.coords.longitude;
+
+    x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
+    "<br />Longitude: " + position.coords.longitude; 
+    
+    var imgurl = "'http://maps.googleapis.com/maps/api/staticmap?center="
+    +latlon+"&#038;zoom=14&#038;size=400x300&#038;sensor=false'";
+    document.getElementById("mapholder").innerHTML = "<img src=" + imgurl + "  />"
+}
+
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            x.innerHTML = "User denied the request for Geolocation."
+            break;
+        case error.POSITION_UNAVAILABLE:
+            x.innerHTML = "Location information is unavailable."
+            break;
+        case error.TIMEOUT:
+            x.innerHTML = "The request to get user location timed out."
+            break;
+        case error.UNKNOWN_ERROR:
+            x.innerHTML = "An unknown error occurred."
+            break;
+    }
+}
+</script>
+
 	    </fieldset>
 	</div>	
 </div>
+
+
