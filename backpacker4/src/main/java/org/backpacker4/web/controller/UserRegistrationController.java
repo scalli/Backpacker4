@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
@@ -223,10 +224,26 @@ public class UserRegistrationController extends AbstractController {
 	 */
 	@RequestMapping(value = "/create" ) // GET or POST
 	public String create(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest
-			, @RequestParam(value = "image", required = false) MultipartFile image) {
+			, @RequestParam(value = "image", required = false) MultipartFile image
+			) {
 		log("Action 'create'");
 		try {
 			if (!bindingResult.hasErrors()) {
+//				
+				String lat = httpServletRequest.getParameter("latitude");
+				String lon = httpServletRequest.getParameter("longitude");
+				
+				BigDecimal bdlat = new BigDecimal(lat);
+				BigDecimal bdlon = new BigDecimal(lon);
+				
+				Position pos = new Position();
+				pos.setId((long) 0);
+				pos.setLatitude(bdlat);
+				pos.setLongitude(bdlon);
+				
+				Position positionCreated = positionService.create(pos);
+				
+				
 				//Create the user
 				Appuser appuserCreated = appuserService.create(appuser); 
 				
@@ -265,28 +282,20 @@ public class UserRegistrationController extends AbstractController {
 						Photo afbeeldingSaved = photoService.create(afbeelding);
 						System.out.println("afbeelding saved ...");
 						
+						
 						afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
 						afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+										
 						
-						//Convert the full image to thumbnail
-						byte [] byteArr=image.getBytes();
-						// convert byte array to BufferedImage
-						InputStream in = new ByteArrayInputStream(byteArr);
-						BufferedImage buffimg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-						buffimg = ImageIO.read(in);
-						Image img = buffimg;
-						
-						BufferedImage thumbCreated = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-						thumbCreated.createGraphics().drawImage(img.getScaledInstance(100, 100, Image.SCALE_SMOOTH),0,0,null);
-
-						//Save the bufferedimage
-						File outputfile = new File(servletContext.getRealPath("/") + "/"
-								+ afbeeldingSaved.getThumbnail() + ".jpg");
-					    ImageIO.write(thumbCreated, "png", outputfile);
-						
-						photoService.save(afbeeldingSaved);
-						
+						//Save full image and thumbnail on server
 						saveImage( image, afbeeldingSaved);
+						
+//					    //Add the saved photoID to the appuser
+					    appuserCreated.setIdPhoto(afbeeldingSaved.getId());
+					    appuserCreated.setIdPosition(positionCreated.getId());
+					    appuserService.update(appuserCreated);
+					    System.out.println("User completly saved in DB!");
+						
 					} catch (IOException e) {
 					bindingResult.reject(e.getMessage());
 					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
@@ -420,7 +429,9 @@ public class UserRegistrationController extends AbstractController {
 			//Save the bufferedimage
 			File outputfile = new File(servletContext.getRealPath("/") + "/"
 					+ afbeelding.getThumbnail() + ".jpg");
-		    ImageIO.write(thumbCreated, "png", outputfile);
+		    ImageIO.write(thumbCreated, "jpg", outputfile);
+		    
+		    photoService.save(afbeelding);
 
 			} catch (IOException e) {
 			throw e;
