@@ -7,7 +7,10 @@
      version="2.0">
 <jsp:directive.page contentType="text/html;charset=UTF-8"/>
 
-<h1>This is the user homepage</h1>
+<div class="row">
+  <div class="col-sm-10"><h1>This is the user homepage</h1></div>
+  <div class="col-sm-2"><IMG alt="thumbnail" src="${thumburl}" /></div>
+</div>
 <h2>Welcome ${username}</h2>
 
 </div>

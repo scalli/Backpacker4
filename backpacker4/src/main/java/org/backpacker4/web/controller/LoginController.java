@@ -1,5 +1,13 @@
 package org.backpacker4.web.controller;
 
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletContext;
+
+import org.backpacker4.bean.Appuser;
+import org.backpacker4.business.service.AppuserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,6 +21,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class LoginController {
+	
+	@Resource
+	AppuserService appuserService;
 
 	@RequestMapping(value = { "/", "/welcome**" }, method = RequestMethod.GET)
 	public ModelAndView defaultPage() {
@@ -107,11 +118,24 @@ public class LoginController {
 
 	}
 	
+	@Autowired
+    private ServletContext servletContext;
+	
 	//add the current user
-		private void addCurrentUser(ModelAndView model){	
+	private void addCurrentUser(ModelAndView model){	
 			UserDetails userDetails =
 			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 			model.addObject("username",userDetails.getUsername());
+			
+			String url = "";
+			List<Appuser> allAppUsers = appuserService.findAll(); 
+			for(Appuser appuser : allAppUsers){
+				if (appuser.getUsername().equals(userDetails.getUsername())){
+					url = servletContext.getRealPath("/") + "/"
+							+ appuser.getIdPhoto() + "_THUMB.jpg";
+				}
+			}
+			model.addObject("thumburl",url);
 		}
 
 }
