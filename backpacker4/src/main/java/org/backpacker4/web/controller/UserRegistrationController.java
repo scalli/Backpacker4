@@ -230,19 +230,8 @@ public class UserRegistrationController extends AbstractController {
 		try {
 			if (!bindingResult.hasErrors()) {
 //				
-				String lat = httpServletRequest.getParameter("latitude");
-				String lon = httpServletRequest.getParameter("longitude");
-				
-				BigDecimal bdlat = new BigDecimal(lat);
-				BigDecimal bdlon = new BigDecimal(lon);
-				
-				Position pos = new Position();
-				pos.setId((long) 0);
-				pos.setLatitude(bdlat);
-				pos.setLongitude(bdlon);
-				
-				Position positionCreated = positionService.create(pos);
-				
+				//Save the position
+				Position positionCreated = savePosition(httpServletRequest);
 				
 				//Create the user
 				Appuser appuserCreated = appuserService.create(appuser); 
@@ -330,17 +319,93 @@ public class UserRegistrationController extends AbstractController {
 	 * @return
 	 */
 	@RequestMapping(value = "/update" ) // GET or POST
-	public String update(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest) {
+	public String update(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest
+			, @RequestParam(value = "image", required = false) MultipartFile image
+			) {
 		log("Action 'update'");
 		try {
 			if (!bindingResult.hasErrors()) {
-				//--- Perform database operations
-				Appuser appuserSaved = appuserService.update(appuser);
-				model.addAttribute(MAIN_ENTITY_NAME, appuserSaved);
-				//--- Set the result message
+							
+				//Update the user
+				Long pid = appuserService.findById(appuser.getId()).getIdPosition();
+				Long fid = appuserService.findById(appuser.getId()).getIdPhoto();
+				appuser.setIdPhoto(fid);
+				appuser.setIdPosition(pid);
+				System.out.println("pid:" + pid + "   fid: " + fid);
+				Appuser appuserCreated = appuserService.update(appuser); 
+				
+				//Save the position
+				Position positionCreated = updatePosition(httpServletRequest, appuserCreated);
+				
+				//Give the created user the ROLE_USER role
+//				UserRoles userroles = new UserRoles();
+//				userroles.setIduserRoles(0);
+//				userroles.setUserid(appuserCreated.getId());
+//				userroles.setUserrole("ROLE_USER");
+//				System.out.println(userroles.toString());
+//				userRolesService.create(userroles); 
+				
+				//Add the image to Database column photo
+				if (!image.isEmpty()) {
+					try {
+							validateImage(image);
+							System.out.println("image validation (jpg) succeeded...");
+					} catch (RuntimeException re) {
+					bindingResult.reject(re.getMessage());
+					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+					}
+					 
+					try {
+						Photo afbeelding = photoService.findById(appuserCreated.getIdPhoto());
+//						Photo afbeelding = new Photo();
+//						afbeelding.setId(Long.parseLong(String.valueOf(0)));
+						afbeelding.setComment("");
+						//dummy value for position
+						afbeelding.setIdPosition(Long.parseLong(String.valueOf(1)));
+						afbeelding.setDescription(appuserCreated.getUsername());
+						afbeelding.setThumbnail("");
+						afbeelding.setFullphoto("");
+						Calendar cal = Calendar.getInstance();
+						afbeelding.setDatetaken(cal.getTime());
+						System.out.println("afbeelding created ...");
+						
+						//Add photo to database
+						Photo afbeeldingSaved = photoService.update(afbeelding);
+						System.out.println("afbeelding saved ...");
+						
+						
+						afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+						afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+										
+						
+						//Save full image and thumbnail on server
+						saveImage( image, afbeeldingSaved);
+						
+//					    //Add the saved photoID to the appuser
+//					    appuserCreated.setIdPhoto(afbeeldingSaved.getId());
+//					    appuserCreated.setIdPosition(positionCreated.getId());
+//					    appuserService.update(appuserCreated);
+					    System.out.println("User completly saved in DB!");
+						
+					} catch (IOException e) {
+					bindingResult.reject(e.getMessage());
+					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+					}
+					}
+				
+				model.addAttribute(MAIN_ENTITY_NAME, appuserCreated);
+				
+				//---
 				messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
-				log("Action 'update' : update done - redirect");
-				return redirectToForm(httpServletRequest, appuser.getId());
+				return redirectToForm1(httpServletRequest, appuser.getId());
+				
+//				//--- Perform database operations
+//				Appuser appuserSaved = appuserService.update(appuser);
+//				model.addAttribute(MAIN_ENTITY_NAME, appuserSaved);
+//				//--- Set the result message
+//				messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
+//				log("Action 'update' : update done - redirect");
+//				return redirectToForm1(httpServletRequest, appuser.getId());
 			} else {
 				log("Action 'update' : binding errors");
 				populateModel( model, appuser, FormMode.UPDATE);
@@ -403,6 +468,39 @@ public class UserRegistrationController extends AbstractController {
 	
 	@Autowired
     private ServletContext servletContext;
+	
+	private Position savePosition(HttpServletRequest httpServletRequest){
+		
+		String lat = httpServletRequest.getParameter("latitude");
+		String lon = httpServletRequest.getParameter("longitude");
+		
+		BigDecimal bdlat = new BigDecimal(lat);
+		BigDecimal bdlon = new BigDecimal(lon);
+		
+		Position pos = new Position();
+		pos.setId((long) 0);
+		pos.setLatitude(bdlat);
+		pos.setLongitude(bdlon);
+		
+		Position positionCreated = positionService.create(pos);
+		return positionCreated;
+	}
+	
+private Position updatePosition(HttpServletRequest httpServletRequest, Appuser appuser){
+		
+		String lat = httpServletRequest.getParameter("latitude");
+		String lon = httpServletRequest.getParameter("longitude");
+		
+		BigDecimal bdlat = new BigDecimal(lat);
+		BigDecimal bdlon = new BigDecimal(lon);
+		
+		Position pos = positionService.findById((appuser.getIdPosition()));
+		pos.setLatitude(bdlat);
+		pos.setLongitude(bdlon);
+		
+		Position positionUpdated = positionService.update(pos);
+		return positionUpdated;
+	}
 	
 	private void saveImage(MultipartFile image, Photo afbeelding)
 			throws RuntimeException, IOException {
