@@ -20,7 +20,7 @@
       <p>link 4</p>
     </div>
     <div class="col-sm-9">
-      <div class="row">
+<div class="row">
 		<div class="form-group">
   			<div id="geocoding">
       		<input id="address" type="textbox" value="Herdersem, Belgium" />
@@ -28,8 +28,8 @@
    	 		</div>
     		<div id="map" style="height: 300px;">Here comes the Google map</div>
 		</div>
-	   </div>
-	   <div class="row">
+	</div>
+<div class="row">
 		<div class="form-group">
 		  <label for="sel1">Select list:</label>
 		  <select class="form-control" id="sel1">
@@ -45,19 +45,18 @@
 		  </select>
 		</div>
 		</div>
-		<div class="row">
+<div class="row">
 			  <label for="comment">Comment:</label>
 			  <textarea class="form-control" rows="5" id="comment">t</textarea>
 		</div>
-		<div class="row">
+<div class="row">
 		<div class="form-group">
 			<label for="image">Image (in JPEG format only):</label>
 			<input name="image" type="file" />
 		</div>
 		</div>
-    </div>
-  </div>
-</div>
+		</div>
+		</div>
 
 <script>
 function initMap() {
@@ -87,7 +86,10 @@ function initMap() {
 	  });
 	}
 </script>
-<script src="${googleAPIurl}" async="async" defer="defer"></script>
+<script src="${googleAPIurl}" async="async" defer="defer">
+function dummy(){}
+</script>
 
+</div>
 </div>
 
