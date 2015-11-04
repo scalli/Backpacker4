@@ -6,6 +6,9 @@
 
 <tiles-definitions>
 	<definition extends="default" name="user/home">
-		<put-attribute name="body" value="/WEB-INF/views/user/user_home.jsp" />
+		<put-attribute name="body" value="/WEB-INF/views/user/user_home.jspx" />
+	</definition>
+	<definition extends="default" name="user/feedback">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_feedback.jspx" />
 	</definition>
 </tiles-definitions>

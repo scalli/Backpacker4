@@ -131,7 +131,7 @@ public class LoginController {
 			List<Appuser> allAppUsers = appuserService.findAll(); 
 			for(Appuser appuser : allAppUsers){
 				if (appuser.getUsername().equals(userDetails.getUsername())){
-					url = servletContext.getRealPath("/") + "/"
+					url = servletContext.getRealPath("/")
 							+ appuser.getIdPhoto() + "_THUMB.jpg";
 				}
 			}
