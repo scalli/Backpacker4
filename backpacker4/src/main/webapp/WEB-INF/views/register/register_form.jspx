@@ -133,7 +133,7 @@
 			</form:form>
 			
 				<p id="demo">Here comes the current position.</p>
-				<div id="mapholder">Empty mapholder</div>
+				<p id="mapholder">Empty mapholder</p>
 				 
 
 
@@ -162,9 +162,25 @@ function doAjaxPost() {
   			}
  </script>
 
+<script src="${reverseGeoloactionURL}">function dummy(){}</script>
+
 <script>
 window.onload=getLocation1;
 var x = document.getElementById("demo");
+
+function getLocation(){
+	var watchId = null;
+	if (navigator.geolocation) {
+		var optn = {
+				enableHighAccuracy : true,
+				timeout : Infinity,
+				maximumAge : 0
+		};
+	watchId = navigator.geolocation.watchPosition(showPosition, showError, optn);
+	} else {
+			alert('Geolocation is not supported in your browser');
+	}
+}
 
 function getLocation1() {
     if (navigator.geolocation) {
@@ -189,6 +205,50 @@ function showPosition1(position) {
     var imgurl = "'http://maps.googleapis.com/maps/api/staticmap?center="
     +latlon+"&#038;zoom=14&#038;size=400x300&#038;sensor=false'";
     document.getElementById("mapholder").innerHTML = "<img src=" + imgurl + "  />"
+}
+
+function showPosition(position) {
+	
+	x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
+    "<br />Longitude: " + position.coords.longitude;
+	
+	var googlePos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+	var mapOptions = {
+		zoom : 12,
+		center : googlePos,
+		mapTypeId : google.maps.MapTypeId.ROADMAP
+	};
+	var mapObj = document.getElementById("mapholder");
+	var googleMap = new google.maps.Map(mapObj, mapOptions);
+	var markerOpt = {
+		map : googleMap,
+		position : googlePos,
+		title : 'Hi , I am here',
+		animation : google.maps.Animation.DROP
+	};
+	var googleMarker = new google.maps.Marker(markerOpt);
+	var geocoder = new google.maps.Geocoder();
+	geocoder.geocode({
+		'latLng' : googlePos
+		}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+			if (results[1]) {
+				var popOpts = {
+					content : results[1].formatted_address,
+					position : googlePos
+				};
+				var popup = new google.maps.InfoWindow(popOpts);
+				alert("showPosition");
+				google.maps.event.addListener(googleMarker, 'click', function() {
+					popup.open(googleMap);
+			});
+			} else {
+				alert("No results found");
+			}
+			} else {
+				alert("Geocoder failed due to: " + status);
+			}
+		});
 }
 
 function showError(error) {

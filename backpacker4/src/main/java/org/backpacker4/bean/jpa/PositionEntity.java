@@ -50,6 +50,12 @@ public class PositionEntity implements Serializable {
 
     @Column(name="LONGITUDE")
     private BigDecimal longitude    ;
+    
+    @Column(name="COUNTRY")
+    private String country     ;
+
+    @Column(name="CITY")
+    private String city    ;
 
 
 
@@ -102,6 +108,21 @@ public class PositionEntity implements Serializable {
         return this.longitude;
     }
 
+  //--- DATABASE MAPPING : COUNTRY ( VARCHAR ) 
+    public void setCountry( String country ) {
+        this.country = country;
+    }
+    public String getCountry() {
+        return this.country;
+    }
+    
+  //--- DATABASE MAPPING : CITY ( VARCHAR ) 
+    public void setCity( String city ) {
+        this.city = city;
+    }
+    public String getCity() {
+        return this.city;
+    }
 
     //----------------------------------------------------------------------
     // GETTERS & SETTERS FOR LINKS
@@ -139,6 +160,10 @@ public class PositionEntity implements Serializable {
         sb.append(latitude);
         sb.append("|");
         sb.append(longitude);
+        sb.append("|");
+        sb.append(country);
+        sb.append("|");
+        sb.append(city);
         return sb.toString(); 
     } 
 

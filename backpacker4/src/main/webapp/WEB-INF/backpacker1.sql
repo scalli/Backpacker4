@@ -93,7 +93,7 @@ CREATE TABLE `appuser` (
   KEY `FK_APPUSER_POSITION` (`ID_POSITION`),
   CONSTRAINT `FK_APPUSER_PHOTO` FOREIGN KEY (`ID_PHOTO`) REFERENCES `photo` (`ID`) ON UPDATE NO ACTION,
   CONSTRAINT `FK_APPUSER_POSITION` FOREIGN KEY (`ID_POSITION`) REFERENCES `position` (`ID`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -102,7 +102,7 @@ CREATE TABLE `appuser` (
 
 LOCK TABLES `appuser` WRITE;
 /*!40000 ALTER TABLE `appuser` DISABLE KEYS */;
-INSERT INTO `appuser` VALUES (1,'user','user','user@mail.com','user','user',1,1),(2,'admin','admin','admin@mail.com','admin','admin',2,2);
+INSERT INTO `appuser` VALUES (1,'user','user','user@mail.com','user','user',1,1),(2,'admin','admin','admin@mail.com','admin','admin',2,2),(3,'b','b','bsdfqsdf@bersdfsd.be','b','b',3,3),(4,'c','c','cccccc@yahoo.com','c','c',4,4),(5,'d','d','dddddd@dddd.dd','d','d',5,5),(6,'e','e','eeeee@eeeeee.ee','e','e',6,6);
 /*!40000 ALTER TABLE `appuser` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -183,7 +183,7 @@ CREATE TABLE `photo` (
   PRIMARY KEY (`ID`),
   KEY `FK_PHOTO_POSITION` (`ID_POSITION`),
   CONSTRAINT `FK_PHOTO_POSITION` FOREIGN KEY (`ID_POSITION`) REFERENCES `position` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -192,7 +192,7 @@ CREATE TABLE `photo` (
 
 LOCK TABLES `photo` WRITE;
 /*!40000 ALTER TABLE `photo` DISABLE KEYS */;
-INSERT INTO `photo` VALUES (1,'description photo 1',1,'2015-10-27 00:00:00','comment','photoURL','thumbnailURL'),(2,'description photo 2',2,'2015-10-28 00:00:00','comment photo 2','url photo 2','url thumbnail 2');
+INSERT INTO `photo` VALUES (1,'description photo 1',1,'2015-10-27 00:00:00','comment','photoURL','thumbnailURL'),(2,'description photo 2',2,'2015-10-28 00:00:00','comment photo 2','url photo 2','url thumbnail 2'),(3,'b',1,'2015-11-15 19:23:34','','3_FULL','3_THUMB'),(4,'c',1,'2015-11-15 20:08:14','','4_FULL','4_THUMB'),(5,'d',1,'2015-11-15 21:54:48','','5_FULL','5_THUMB'),(6,'e',1,'2015-11-15 22:01:06','','6_FULL','6_THUMB');
 /*!40000 ALTER TABLE `photo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -205,10 +205,12 @@ DROP TABLE IF EXISTS `position`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `position` (
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
-  `LATITUDE` decimal(12,9) DEFAULT NULL,
-  `LONGITUDE` decimal(12,9) DEFAULT NULL,
+  `LATITUDE` decimal(12,9) NOT NULL,
+  `LONGITUDE` decimal(12,9) NOT NULL,
+  `COUNTRY` varchar(100) NOT NULL,
+  `CITY` varchar(100) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -217,7 +219,7 @@ CREATE TABLE `position` (
 
 LOCK TABLES `position` WRITE;
 /*!40000 ALTER TABLE `position` DISABLE KEYS */;
-INSERT INTO `position` VALUES (1,12.125236987,18.123456789),(2,123.123456789,312.123456789);
+INSERT INTO `position` VALUES (1,12.125236987,18.123456789,'Belgium','Herdersem'),(2,123.123456789,312.123456789,'Belgium','Aalst'),(3,50.965796000,4.064593900,'Sydney','Australie'),(4,50.965797800,4.064586000,'Belgium','Herdersem'),(5,50.965794100,4.064574300,'Belgium','Herdersem'),(6,50.965820600,4.064607400,'Belgium','Herdersem');
 /*!40000 ALTER TABLE `position` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -254,12 +256,11 @@ DROP TABLE IF EXISTS `user_roles`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_roles` (
   `iduser_roles` int(11) NOT NULL AUTO_INCREMENT,
-  `USERNAME` varchar(45) NOT NULL,
+  `USERID` bigint(20) NOT NULL,
   `USERROLE` varchar(45) NOT NULL,
   PRIMARY KEY (`iduser_roles`),
-  KEY `USERNAME_idx` (`USERNAME`),
-  CONSTRAINT `USERNAME` FOREIGN KEY (`USERNAME`) REFERENCES `appuser` (`USERNAME`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+  KEY `USERNAME_idx` (`USERID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,7 +269,7 @@ CREATE TABLE `user_roles` (
 
 LOCK TABLES `user_roles` WRITE;
 /*!40000 ALTER TABLE `user_roles` DISABLE KEYS */;
-INSERT INTO `user_roles` VALUES (1,'user','ROLE_USER'),(2,'admin','ROLE_ADMIN');
+INSERT INTO `user_roles` VALUES (1,1,'ROLE_USER'),(2,2,'ROLE_ADMIN'),(3,3,'ROLE_USER'),(4,4,'ROLE_USER'),(5,5,'ROLE_USER'),(6,6,'ROLE_USER');
 /*!40000 ALTER TABLE `user_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -281,4 +282,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-10-28 22:37:57
+-- Dump completed on 2015-11-15 22:02:23

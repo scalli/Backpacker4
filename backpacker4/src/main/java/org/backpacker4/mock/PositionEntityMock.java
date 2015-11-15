@@ -36,7 +36,9 @@ public class PositionEntityMock {
 		entity.setId( id) ;
 		// Init Data fields
 		entity.setLatitude( mockValues.nextBigDecimal() ) ; // java.math.BigDecimal 
-		entity.setLongitude( mockValues.nextBigDecimal() ) ; // java.math.BigDecimal 
+		entity.setLongitude( mockValues.nextBigDecimal() ) ; // java.math.BigDecimal
+		entity.setCountry( mockValues.nextString(100) ) ; // java.lang.String 
+		entity.setCity( mockValues.nextString(100) ) ; // java.lang.String 
 		// Init Link fields (if any)
 		// setListOfPhoto( TODO ) ; // List<Photo> 
 		// setListOfFeedback( TODO ) ; // List<Feedback> 

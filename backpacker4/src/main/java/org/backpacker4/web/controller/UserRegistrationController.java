@@ -193,6 +193,7 @@ public class UserRegistrationController extends AbstractController {
 		//--- Populates the model with a new instance
 		Appuser appuser = new Appuser();	
 		populateModel( model, appuser, FormMode.CREATE);
+		model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true");
 		log("model populated");
 		return JSP_FORM;
 	}
@@ -481,6 +482,8 @@ public class UserRegistrationController extends AbstractController {
 		pos.setId((long) 0);
 		pos.setLatitude(bdlat);
 		pos.setLongitude(bdlon);
+		pos.setCountry("Belgium");
+		pos.setCity("Herdersem");
 		
 		Position positionCreated = positionService.create(pos);
 		return positionCreated;
@@ -497,6 +500,8 @@ private Position updatePosition(HttpServletRequest httpServletRequest, Appuser a
 		Position pos = positionService.findById((appuser.getIdPosition()));
 		pos.setLatitude(bdlat);
 		pos.setLongitude(bdlon);
+		pos.setCountry("Belgium");
+		pos.setCity("Herdersem");
 		
 		Position positionUpdated = positionService.update(pos);
 		return positionUpdated;

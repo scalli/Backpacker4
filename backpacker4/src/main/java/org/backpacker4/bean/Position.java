@@ -30,6 +30,11 @@ public class Position implements Serializable {
     private BigDecimal longitude;
 
 
+	private String country;
+    
+    
+	private String city;
+
 
     //----------------------------------------------------------------------
     // GETTER & SETTER FOR THE KEY FIELD
@@ -61,6 +66,21 @@ public class Position implements Serializable {
     }
 
 
+    public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
     //----------------------------------------------------------------------
     // toString METHOD
     //----------------------------------------------------------------------
@@ -72,6 +92,10 @@ public class Position implements Serializable {
         sb.append(latitude);
         sb.append("|");
         sb.append(longitude);
+        sb.append("|");
+        sb.append(country);
+        sb.append("|");
+        sb.append(city);
         return sb.toString(); 
     } 
 
