@@ -474,6 +474,9 @@ public class UserRegistrationController extends AbstractController {
 		
 		String lat = httpServletRequest.getParameter("latitude");
 		String lon = httpServletRequest.getParameter("longitude");
+		String city = httpServletRequest.getParameter("city");
+		String country = httpServletRequest.getParameter("country");
+		System.out.println(city + "  " + country);
 		
 		BigDecimal bdlat = new BigDecimal(lat);
 		BigDecimal bdlon = new BigDecimal(lon);
@@ -482,8 +485,8 @@ public class UserRegistrationController extends AbstractController {
 		pos.setId((long) 0);
 		pos.setLatitude(bdlat);
 		pos.setLongitude(bdlon);
-		pos.setCountry("Belgium");
-		pos.setCity("Herdersem");
+		pos.setCountry(country);
+		pos.setCity(city);
 		
 		Position positionCreated = positionService.create(pos);
 		return positionCreated;
@@ -493,6 +496,8 @@ private Position updatePosition(HttpServletRequest httpServletRequest, Appuser a
 		
 		String lat = httpServletRequest.getParameter("latitude");
 		String lon = httpServletRequest.getParameter("longitude");
+		String city = httpServletRequest.getParameter("city");
+		String country = httpServletRequest.getParameter("country");
 		
 		BigDecimal bdlat = new BigDecimal(lat);
 		BigDecimal bdlon = new BigDecimal(lon);
@@ -500,8 +505,10 @@ private Position updatePosition(HttpServletRequest httpServletRequest, Appuser a
 		Position pos = positionService.findById((appuser.getIdPosition()));
 		pos.setLatitude(bdlat);
 		pos.setLongitude(bdlon);
-		pos.setCountry("Belgium");
-		pos.setCity("Herdersem");
+		pos.setCountry(country);
+		pos.setCity(city);
+		
+		System.out.println(city + "  " + country);
 		
 		Position positionUpdated = positionService.update(pos);
 		return positionUpdated;

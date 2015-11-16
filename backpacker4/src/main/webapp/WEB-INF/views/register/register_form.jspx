@@ -17,7 +17,7 @@
 			<util:message message="${message}" messages="${messages}" />
 			
 	    	<s:url value="${saveAction}" var="url_form_submit" />
-			<form:form onload="getLocation()" class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
+			<form:form onload="getLocation1()" class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
 				<form:errors path="*" cssClass="alert alert-danger" element="div" />
 
 <c:if test="${mode != 'create'}">
@@ -109,6 +109,10 @@
 					<input type="text" name="latitude" id="latitude" value="latitude" /> 
 					<label for="longitude">longitude:</label>
 					<input type="text" name="longitude" id="longitude" value="longitude" /> 
+					<label for="country">country:</label>
+					<input type="text" name="country" id="country" value="country" /> 
+					<label for="city">city:</label>
+					<input type="text" name="city" id="city" value="city" /> 
 				</div>
 
 				<!-- ACTION BUTTONS -->
@@ -133,10 +137,8 @@
 			</form:form>
 			
 				<p id="demo">Here comes the current position.</p>
-				<p id="mapholder">Empty mapholder</p>
+				<div id="mapholder">Empty mapholder</div>
 				 
-
-
 <script>
 $('#appuser_username').change(doAjaxPost);
 function doAjaxPost() {
@@ -168,6 +170,8 @@ function doAjaxPost() {
 window.onload=getLocation1;
 var x = document.getElementById("demo");
 
+//is not being used
+//TODO: remove when finalizing project
 function getLocation(){
 	var watchId = null;
 	if (navigator.geolocation) {
@@ -202,15 +206,32 @@ function showPosition1(position) {
     lg.value = "" + position.coords.longitude; 
     lt.value = "" + position.coords.latitude;
     
+    var lat = position.coords.latitude;
+    var lng = position.coords.longitude;
+    codeLatLng(lat, lng);
+    
     var imgurl = "'http://maps.googleapis.com/maps/api/staticmap?center="
     +latlon+"&#038;zoom=14&#038;size=400x300&#038;sensor=false'";
     document.getElementById("mapholder").innerHTML = "<img src=" + imgurl + "  />"
 }
 
+
+//is not being used
+//TODO: remove when finalizing project
 function showPosition(position) {
 	
 	x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
     "<br />Longitude: " + position.coords.longitude;
+	
+	 var lg = document.getElementById("longitude");
+	 var lt = document.getElementById("latitude");
+	 var country = document.getElementById("country");
+	 var city = document.getElementById("city");
+
+	 lg.value = "" + position.coords.longitude; 
+	 lt.value = "" + position.coords.latitude;
+	 
+	 
 	
 	var googlePos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 	var mapOptions = {
@@ -267,6 +288,54 @@ function showError(error) {
             break;
     }
 }
+
+</script>
+
+<script type="text/javascript">
+<![CDATA[
+//Get the country and city from the latitude and longitude
+function codeLatLng(lat, lng) {
+    var latlng = new google.maps.LatLng(lat, lng);
+	geocoder = new google.maps.Geocoder();
+	geocoder.geocode({'latLng': latlng}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        console.log("results : " + results);
+        if (results[1]) {
+         //formatted address
+         alert(results[0].formatted_address);
+        //find country name
+         for (var i=0; i < results[0].address_components.length; i++) {
+            for (var b=0;b < results[0].address_components[i].types.length;b++) {
+
+            //there are different types that might hold a city admin_area_lvl_1 usually does in come cases looking for sublocality type will be more appropriate
+                if (results[0].address_components[i].types[b] == "locality") {
+                    //this is the object you are looking for
+                    city= results[0].address_components[i];
+                    var ct = document.getElementById("city");
+                    ct.value = "" + city.long_name; 
+                }
+                if (results[0].address_components[i].types[b] == "country") {
+                    //this is the object you are looking for
+                    country= results[0].address_components[i];
+                    var co = document.getElementById("country");
+                    co.value = "" + country.long_name; 
+                }
+            }
+        }
+        //city data
+//         alert("city: " + city.short_name + " " + city.long_name + " country: " + country.short_name + " " + country.long_name);
+        
+
+
+        } else {
+          alert("No results found");
+        }
+      } else {
+        alert("Geocoder failed due to: " + status);
+      }
+    });
+  }
+]]>
 </script>
 
 	    </fieldset>
