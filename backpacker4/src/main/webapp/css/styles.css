@@ -17,3 +17,7 @@
 	background: url("../images/logo.png") 0 5px no-repeat;
 	padding-left: 97px;
 }
+.mapholder {
+        height: 400px;
+        width: 700px;
+}

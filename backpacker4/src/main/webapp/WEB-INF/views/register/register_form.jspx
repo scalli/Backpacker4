@@ -101,7 +101,8 @@
 
 				<div class="form-group">
 					<label for="image">Image (in JPEG format only):</label>
-					<input name="image" type="file"/>
+					<input name="image" id="image" type="file"/>
+					<div id="fileinfo"></div>
 				</div>
 				
 				<div class="form-group">
@@ -137,7 +138,7 @@
 			</form:form>
 			
 				<p id="demo">Here comes the current position.</p>
-				<div id="mapholder">Empty mapholder</div>
+				<div class="mapholder" id="mapholder" height="400" width="700">Empty mapholder</div>
 				 
 <script>
 $('#appuser_username').change(doAjaxPost);
@@ -188,12 +189,13 @@ function getLocation(){
 
 function getLocation1() {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition1, showError);
+        navigator.geolocation.getCurrentPosition(showPosition2, showError);
     } else {
         x.innerHTML = "Geolocation is not supported by this browser.";
     }
 }
 
+//werkt in Chrome en Firefox maar toont geen marker
 function showPosition1(position) {
     var latlon = position.coords.latitude + "," + position.coords.longitude;
 
@@ -209,10 +211,49 @@ function showPosition1(position) {
     var lat = position.coords.latitude;
     var lng = position.coords.longitude;
     codeLatLng(lat, lng);
-    
     var imgurl = "'http://maps.googleapis.com/maps/api/staticmap?center="
     +latlon+"&#038;zoom=14&#038;size=400x300&#038;sensor=false'";
     document.getElementById("mapholder").innerHTML = "<img src=" + imgurl + "  />"
+}
+
+//Werkt in Firefox, maar niet in Chrome
+function showPosition2(position)
+{
+	x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
+    "<br />Longitude: " + position.coords.longitude; 
+	
+	var lg = document.getElementById("longitude");
+    var lt = document.getElementById("latitude");
+
+    lg.value = "" + position.coords.longitude; 
+    lt.value = "" + position.coords.latitude;
+    
+    var lat = position.coords.latitude;
+    var lng = position.coords.longitude;
+    codeLatLng(lat, lng);
+	
+	var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    var coords = new google.maps.LatLng(latitude, longitude);
+
+    var mapOptions = {
+    zoom: 15,
+    center: coords,
+    mapTypeControl: true,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+
+//create the map, and place it in the HTML map div
+map = new google.maps.Map(
+document.getElementById("mapholder"), mapOptions
+);
+
+//place the initial marker
+var marker = new google.maps.Marker({
+position: coords,
+map: map,
+title: "Current location!"
+});
 }
 
 
@@ -230,7 +271,7 @@ function showPosition(position) {
 
 	 lg.value = "" + position.coords.longitude; 
 	 lt.value = "" + position.coords.latitude;
-	 
+	 codeLatLng(lat, lng);
 	 
 	
 	var googlePos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
@@ -241,6 +282,7 @@ function showPosition(position) {
 	};
 	var mapObj = document.getElementById("mapholder");
 	var googleMap = new google.maps.Map(mapObj, mapOptions);
+		
 	var markerOpt = {
 		map : googleMap,
 		position : googlePos,
@@ -337,9 +379,21 @@ function codeLatLng(lat, lng) {
   }
 ]]>
 </script>
+<script>
+document.getElementById('image').addEventListener('change', function(){
+    var file = this.files[0];
+    document.getElementById('fileinfo').innerHTML="file ready for upload: " + file.name + "(" + file.size + ")";
+    // This code is only for demo ...
+    console.log("name : " + file.name);
+    console.log("size : " + file.size);
+    console.log("type : " + file.type);
+    console.log("date : " + file.lastModified);
+}, false);
+</script>
 
 	    </fieldset>
 	</div>	
 </div>
+
 
 
