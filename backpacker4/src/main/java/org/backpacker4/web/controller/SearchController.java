@@ -133,6 +133,7 @@ public class SearchController extends AbstractController {
 		
 		model.addAttribute("feedbackheaders",feedbackheaders);
 		model.addAttribute("feedbacktext",feedbacktext);
+		model.addAttribute("feebackphotos",feedbackphotos);
 
 		return JSP_FORM;
 	}
@@ -154,12 +155,10 @@ public class SearchController extends AbstractController {
 		for(FeedbackPhoto fbphoto : fplist){
 			if(f.getId() == fbphoto.getIdFeedback()){
 //				photoids.add(fbphoto.getIdPhoto());
-				photo_urls.add(url + fbphoto.getIdPhoto() + "_FULL.jpg");
+				photo_urls.add(/*url + */fbphoto.getIdPhoto() + "_FULL.jpg");
 				System.out.println("url:" + url + fbphoto.getIdPhoto() + "_FULL.jpg");
 			}
-		}
-		
-		
+		}		
 		return photo_urls;
 	}
 	
