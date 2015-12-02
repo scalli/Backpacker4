@@ -3,28 +3,64 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <html>
 <body>
-	<h1>Title : ${title}</h1>
-	<h1>Message : ${message}</h1>
+	<div class="container">
+		<h1>Backpackworld</h1>
+	</div>
+	
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-4">
+				Welcome to Backpackworld! 
+				<p>
+				For backpackers, by backpackers... You'll find lots of feedback on different backpack
+				locations. Do not hestitate to share your own experiences with other backpackers!
+				</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="bphome"></div>
+		</div>
+	</div>
+	
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-4">
+				<div class="panel panel-default">
+				  <div class="panel-heading">
+				    <h3 class="panel-title">Login as administrator</h3>
+				  </div>
+				  <div class="panel-body">
+				    <!-- "ADMIN LOGIN" button ( HREF link ) -->
+					<a role="button" class="btn btn-default btn-block" href="admin/home">ADMIN</a>
 
-	<div class="col-sm-offset-4 col-sm-2">
-		<!-- "ADMIN LOGIN" button ( HREF link ) -->
-		<a role="button" class="btn btn-default btn-block" href="admin/home">ADMIN</a>
-	</div>
-	
-	<div class="col-sm-offset-4 col-sm-2">
-		<!-- "USER LOGIN" button ( HREF link ) -->
-		<a role="button" class="btn btn-default btn-block" href="user/home">USER</a>
-	</div>
-	
-	<div class="col-sm-offset-4 col-sm-2">
-		<!-- "USER LOGIN" button ( HREF link ) -->
-		<a role="button" class="btn btn-default btn-block" href="index">OVERZICHT</a>
-	</div>
-	
-	<div class="col-sm-offset-4 col-sm-2">
-		<!-- "CREATE" button ( HREF link ) -->
-		<a role="button" class="btn btn-default btn-block" href="register/form">REGISTER</a>
-	</div>
+				  </div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="panel panel-default">
+				  <div class="panel-heading">
+				    <h3 class="panel-title">Login as user</h3>
+				  </div>
+				  <div class="panel-body">
+				    <!-- "USER LOGIN" button ( HREF link ) -->
+					<a role="button" class="btn btn-default btn-block" href="user/home">USER</a>
+				  </div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+					<div class="panel panel-default">
+					  <div class="panel-heading">
+					    <h3 class="panel-title">Register as new user</h3>
+					  </div>
+					  <div class="panel-body">
+					   <!-- "CREATE" button ( HREF link ) -->
+						<a role="button" class="btn btn-default btn-block" href="register/form">REGISTER</a>
+					  </div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 
 	<sec:authorize access="hasRole('ROLE_USER')">
 		<!-- For login user -->

@@ -8,4 +8,7 @@
 	<definition extends="default" name="admin/home">
 		<put-attribute name="body" value="/WEB-INF/views/admin/admin_home.jsp" />
 	</definition>
+	<definition extends="default" name="admin/search/form">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_search_form.jspx" />
+	</definition>
 </tiles-definitions>

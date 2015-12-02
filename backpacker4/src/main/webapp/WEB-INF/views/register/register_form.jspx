@@ -12,7 +12,7 @@
 
 	<div class="container">
 		<fieldset class="col-sm-12 bordure">
-			<legend class="legende"><s:message code="appuser"/></legend>
+			<legend class="legende">User registration page</legend>
 		
 			<util:message message="${message}" messages="${messages}" />
 			
@@ -99,21 +99,25 @@
 					</div>
 				</div>
 
-				<div class="form-group">
-					<label for="image">Image (in JPEG format only):</label>
-					<input name="image" id="image" type="file"/>
-					<div id="fileinfo"></div>
+				<div class="container">
+					<div class="form-group">
+						<label for="image">Image (in JPEG format only):</label>
+						<input name="image" id="image" type="file"/>
+						<div id="fileinfo"></div>
+					</div>
 				</div>
 				
-				<div class="form-group">
-					<label for="latitude">latitude:</label>
-					<input type="text" name="latitude" id="latitude" value="latitude" /> 
-					<label for="longitude">longitude:</label>
-					<input type="text" name="longitude" id="longitude" value="longitude" /> 
-					<label for="country">country:</label>
-					<input type="text" name="country" id="country" value="country" /> 
-					<label for="city">city:</label>
-					<input type="text" name="city" id="city" value="city" /> 
+				<div class="container">
+					<div class="form-group">
+						<label for="latitude">latitude:</label>
+						<input type="text" name="latitude" id="latitude" value="latitude" /> 
+						<label for="longitude">longitude:</label>
+						<input type="text" name="longitude" id="longitude" value="longitude" /> 
+						<label for="country">country:</label>
+						<input type="text" name="country" id="country" value="country" /> 
+						<label for="city">city:</label>
+						<input type="text" name="city" id="city" value="city" /> 
+					</div>
 				</div>
 
 				<!-- ACTION BUTTONS -->
@@ -127,7 +131,7 @@
 <!-- 					</div> -->
     				<div class="col-sm-offset-4 col-sm-2">
 						<!-- "CANCEL" button ( HREF link ) -->
-		 				<s:url var="cancelButtonURL" value="/appuser" />
+		 				<s:url var="cancelButtonURL" value="/" />
 						<a role="button" class="btn btn-default btn-block" href="${cancelButtonURL}"><s:message code="cancel"/></a>
 					</div>
     				<div class="col-sm-2">
@@ -135,10 +139,15 @@
 						<button type="submit" class="btn btn-primary btn-lg btn-block"><s:message code="save"/></button>
 					</div>
 				</div>
+				
+				<input type="hidden" name="dummy" value="dummy"></input>
 			</form:form>
 			
+			<div class="container">
 				<p id="demo">Here comes the current position.</p>
 				<div class="mapholder" id="mapholder" height="400" width="700">Empty mapholder</div>
+			</div>
+				
 				 
 <script>
 $('#appuser_username').change(doAjaxPost);
@@ -168,7 +177,21 @@ function doAjaxPost() {
 <script src="${reverseGeoloactionURL}">function dummy(){}</script>
 
 <script>
-window.onload=getLocation1;
+$(document).ready(getLocation1);
+// window.addEventListener('load',function(){
+//     if(document.getElementById('mapholder')){
+//       google.load("maps", "3",{
+//         callback:function(){
+//            new google.maps.Map(document.getElementById('mapholder'), {
+//               center: new google.maps.LatLng(0,0),
+//               zoom: 3
+//             });
+//         }
+//       });     
+//     }
+//   },false);
+// $(window).load(getLocation1);
+//window.onload=getLocation1;
 var x = document.getElementById("demo");
 
 //is not being used
@@ -188,11 +211,11 @@ function getLocation(){
 }
 
 function getLocation1() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition2, showError);
-    } else {
-        x.innerHTML = "Geolocation is not supported by this browser.";
-    }
+	    if (navigator.geolocation) {
+	        navigator.geolocation.getCurrentPosition(showPosition2, showError);
+	    } else {
+	        x.innerHTML = "Geolocation is not supported by this browser.";
+	    }
 }
 
 //werkt in Chrome en Firefox maar toont geen marker
