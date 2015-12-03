@@ -27,6 +27,7 @@
                 <li><a href="search/form">Search</a></li>
                 <li><a href="#">Where are we?</a></li>
                 <li><a href="#">Who are we?</a></li>
+                <li><a href="/backpacker4/register/form/${appuser.id}">Profile</a></li>
             </ul>
         </div>
     </nav>

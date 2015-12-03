@@ -43,6 +43,7 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_ADMIN only!");
 	  model.setViewName("admin/home");
+	  addCurrentUserURL(model);
 	  addCurrentUser(model);
 	  return model;
 	}
@@ -54,9 +55,9 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_USER only!");
 	  model.setViewName("user/home");
+	  addCurrentUserURL(model);
 	  addCurrentUser(model);
 	  return model;
-
 	}
 	
 	@RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -66,6 +67,7 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_USER only!");
 	  model.setViewName("index");
+	  addCurrentUser(model);
 	  return model;
 
 	}
@@ -77,7 +79,7 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_ADMIN only!");
 	  model.setViewName("admin/home");
-	  addCurrentUser(model);
+	  addCurrentUserURL(model);
 	  return model;
 
 	}
@@ -122,7 +124,7 @@ public class LoginController {
     private ServletContext servletContext;
 	
 	//add the current user
-	private void addCurrentUser(ModelAndView model){	
+	private void addCurrentUserURL(ModelAndView model){	
 			UserDetails userDetails =
 			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 			model.addObject("username",userDetails.getUsername());
@@ -136,6 +138,54 @@ public class LoginController {
 				}
 			}
 			model.addObject("thumburl",url);
+	}
+	
+	private Appuser getAppuser(String username){
+		List<Appuser> appuser_list = appuserService.findAll();
+		for(Appuser user : appuser_list){
+			if(user.getUsername().equals(username))
+				return user;
 		}
+		return new Appuser();
+		}
+		
+		//add the current user
+		private void addCurrentUser(ModelAndView model){	
+			UserDetails userDetails =
+			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			model.addObject("username",userDetails.getUsername());
+			System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+			model.addObject("appuser",getAppuser(userDetails.getUsername()));
+			
+			String url = "";
+			List<Appuser> allAppUsers = appuserService.findAll(); 
+			for(Appuser appuser : allAppUsers){
+				if (appuser.getUsername().equals(userDetails.getUsername())){
+					url = servletContext.getRealPath("/")
+							+ appuser.getIdPhoto() + "_THUMB.jpg";
+				}
+			}
+			model.addObject("thumburl",url);
+		}
+		
+		//add the current user
+		private void addCurrentUser(Model model){	
+				UserDetails userDetails =
+				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				model.addAttribute("username",userDetails.getUsername());
+				System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+				model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
+				
+				String url = "";
+				List<Appuser> allAppUsers = appuserService.findAll(); 
+				for(Appuser appuser : allAppUsers){
+					if (appuser.getUsername().equals(userDetails.getUsername())){
+						url = servletContext.getRealPath("/")
+								+ appuser.getIdPhoto() + "_THUMB.jpg";
+					}
+				}
+				model.addAttribute("thumburl",url);
+			}
+		
 
 }

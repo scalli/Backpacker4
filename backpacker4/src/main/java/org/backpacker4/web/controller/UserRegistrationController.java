@@ -31,6 +31,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
@@ -193,7 +194,7 @@ public class UserRegistrationController extends AbstractController {
 		//--- Populates the model with a new instance
 		Appuser appuser = new Appuser();	
 		populateModel( model, appuser, FormMode.CREATE);
-		model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true");
+		model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
 		log("model populated");
 		return JSP_FORM;
 	}
@@ -209,7 +210,8 @@ public class UserRegistrationController extends AbstractController {
 		log("Action 'formForUpdate'");
 		//--- Search the entity by its primary key and stores it in the model 
 		Appuser appuser = appuserService.findById(id);
-		populateModel( model, appuser, FormMode.UPDATE);		
+		populateModel( model, appuser, FormMode.UPDATE);	
+		addCurrentUser(model);
 		return JSP_FORM;
 	}
 
@@ -462,7 +464,7 @@ public class UserRegistrationController extends AbstractController {
 	}
 	
 	private void validateImage(MultipartFile image) {
-		if (!image.getContentType().equals("image/jpeg")) {
+		if (!image.getContentType().equals("image/*")) {
 		throw new RuntimeException("Only JPG images are accepted");
 		}
 		}
@@ -548,10 +550,50 @@ private Position updatePosition(HttpServletRequest httpServletRequest, Appuser a
 			}
 			}
 	
-	//add the current user
-	private void addCurrentUser(Model model){	
-		UserDetails userDetails =
-		(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		model.addAttribute("username",userDetails.getUsername());
-	}
+		private Appuser getAppuser(String username){
+			List<Appuser> appuser_list = appuserService.findAll();
+			for(Appuser user : appuser_list){
+				if(user.getUsername().equals(username))
+					return user;
+			}
+			return new Appuser();
+		}
+	
+		//add the current user
+		private void addCurrentUser(ModelAndView model){	
+				UserDetails userDetails =
+				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				model.addObject("username",userDetails.getUsername());
+				System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+				model.addObject("appuser",getAppuser(userDetails.getUsername()));
+				
+				String url = "";
+				List<Appuser> allAppUsers = appuserService.findAll(); 
+				for(Appuser appuser : allAppUsers){
+					if (appuser.getUsername().equals(userDetails.getUsername())){
+						url = servletContext.getRealPath("/")
+								+ appuser.getIdPhoto() + "_THUMB.jpg";
+					}
+				}
+				model.addObject("thumburl",url);
+			}
+		
+		//add the current user
+			private void addCurrentUser(Model model){	
+					UserDetails userDetails =
+					(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+					model.addAttribute("username",userDetails.getUsername());
+					System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+					model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
+					
+					String url = "";
+					List<Appuser> allAppUsers = appuserService.findAll(); 
+					for(Appuser appuser : allAppUsers){
+						if (appuser.getUsername().equals(userDetails.getUsername())){
+							url = servletContext.getRealPath("/")
+									+ appuser.getIdPhoto() + "_THUMB.jpg";
+						}
+					}
+					model.addAttribute("thumburl",url);
+				}
 }

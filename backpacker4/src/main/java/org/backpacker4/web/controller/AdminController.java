@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
+import org.backpacker4.bean.Appuser;
 import org.backpacker4.bean.Feedback;
 import org.backpacker4.bean.FeedbackPhoto;
 import org.backpacker4.bean.Position;
@@ -23,9 +24,12 @@ import org.backpacker4.business.service.TypeinfoService;
 import org.backpacker4.business.service.UserRolesService;
 import org.backpacker4.web.common.AbstractController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Spring MVC controller for 'Administrator' management.
@@ -81,6 +85,7 @@ public class AdminController extends AbstractController{
 		public String formForSearch(Model model) {
 			log("Action 'formForSearch'");
 			populateModel(model);
+			addCurrentUser(model);
 			
 			return "admin/search/form";
 		}
@@ -126,6 +131,8 @@ public class AdminController extends AbstractController{
 			model.addAttribute("feedbackheaders",feedbackheaders);
 			model.addAttribute("feedbacktext",feedbacktext);
 			model.addAttribute("feebackphotos",feedbackphotos);
+			
+			addCurrentUser(model);
 
 			return "admin/search/form";
 		}
@@ -339,5 +346,50 @@ public class AdminController extends AbstractController{
 			log("model populated");
 		}
 		
-
+		private Appuser getAppuser(String username){
+			List<Appuser> appuser_list = appuserService.findAll();
+			for(Appuser user : appuser_list){
+				if(user.getUsername().equals(username))
+					return user;
+			}
+			return new Appuser();
+			}
+			
+			//add the current user
+			private void addCurrentUser(ModelAndView model){	
+				UserDetails userDetails =
+				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				model.addObject("username",userDetails.getUsername());
+				System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+				model.addObject("appuser",getAppuser(userDetails.getUsername()));
+				
+				String url = "";
+				List<Appuser> allAppUsers = appuserService.findAll(); 
+				for(Appuser appuser : allAppUsers){
+					if (appuser.getUsername().equals(userDetails.getUsername())){
+						url = servletContext.getRealPath("/")
+								+ appuser.getIdPhoto() + "_THUMB.jpg";
+					}
+				}
+				model.addObject("thumburl",url);
+			}
+			
+			//add the current user
+			private void addCurrentUser(Model model){	
+					UserDetails userDetails =
+					(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+					model.addAttribute("username",userDetails.getUsername());
+					System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+					model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
+					
+					String url = "";
+					List<Appuser> allAppUsers = appuserService.findAll(); 
+					for(Appuser appuser : allAppUsers){
+						if (appuser.getUsername().equals(userDetails.getUsername())){
+							url = servletContext.getRealPath("/")
+									+ appuser.getIdPhoto() + "_THUMB.jpg";
+						}
+					}
+					model.addAttribute("thumburl",url);
+				}
 }

@@ -9,6 +9,7 @@
 <jsp:directive.page contentType="text/html;charset=UTF-8"/>
 <jsp:output omit-xml-declaration="yes"/>
 
+<script src="${reverseGeoloactionURL}">function dummy(){}</script>
 
 	<div class="container">
 		<fieldset class="col-sm-12 bordure">
@@ -17,7 +18,7 @@
 			<util:message message="${message}" messages="${messages}" />
 			
 	    	<s:url value="${saveAction}" var="url_form_submit" />
-			<form:form onload="getLocation1()" class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
+			<form:form class="form-horizontal" enctype="multipart/form-data" modelAttribute="appuser" cssClass="well form-horizontal" method="POST" action="${url_form_submit}?${_csrf.parameterName}=${_csrf.token}">
 				<form:errors path="*" cssClass="alert alert-danger" element="div" />
 
 <c:if test="${mode != 'create'}">
@@ -174,10 +175,8 @@ function doAjaxPost() {
   			}
  </script>
 
-<script src="${reverseGeoloactionURL}">function dummy(){}</script>
-
 <script>
-$(document).ready(getLocation1);
+/* $(document).ready(getLocation1); */
 // window.addEventListener('load',function(){
 //     if(document.getElementById('mapholder')){
 //       google.load("maps", "3",{
@@ -191,7 +190,10 @@ $(document).ready(getLocation1);
 //     }
 //   },false);
 // $(window).load(getLocation1);
-//window.onload=getLocation1;
+window.onload=getLocation1;
+// google.maps.event.addListenerOnce(mapholder, 'idle', function(){
+//     getLocation1();
+// });
 var x = document.getElementById("demo");
 
 //is not being used
@@ -360,7 +362,7 @@ function showError(error) {
 <![CDATA[
 //Get the country and city from the latitude and longitude
 function codeLatLng(lat, lng) {
-    var latlng = new google.maps.LatLng(lat, lng);
+	var latlng = new google.maps.LatLng(lat, lng);
 	geocoder = new google.maps.Geocoder();
 	geocoder.geocode({'latLng': latlng}, function(results, status) {
       if (status == google.maps.GeocoderStatus.OK) {
