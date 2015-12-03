@@ -9,8 +9,6 @@
 <jsp:directive.page contentType="text/html;charset=UTF-8"/>
 <jsp:output omit-xml-declaration="yes"/>
 
-<script src="${reverseGeoloactionURL}">function dummy(){}</script>
-
 	<div class="container">
 		<fieldset class="col-sm-12 bordure">
 			<legend class="legende">User registration page</legend>
@@ -418,6 +416,7 @@ document.getElementById('image').addEventListener('change', function(){
 
 	    </fieldset>
 	</div>	
+	<script src="${reverseGeoloactionURL}">function dummy(){}</script>
 </div>
 
 

@@ -54,7 +54,7 @@
         		<span class="icon-bar"></span>
         	</a>
 			<spring:url value="/" var="url_home"/>
-			<a class="navbar-brand logo" href="${url_home}"><spring:message code="back.welcome"/></a>
+			<a class="navbar-brand logo" href="${url_home}">BACKPACKWORLD</a>
 			<ul class="nav navbar-nav languages">
  				<spring:url value="/j_spring_security_logout" var="url_logout" />
  				<li><a class="navbar-brand" href="${url_logout}"><spring:message code="logout"/></a></li>

@@ -14,4 +14,10 @@
 	<definition extends="default" name="user/search/form">
 		<put-attribute name="body" value="/WEB-INF/views/user/user_search_form.jspx" />
 	</definition>
+	<definition extends="default" name="user/list">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_list.jspx" />
+	</definition>
+	<definition extends="default" name="user/info">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_info.jspx" />
+	</definition>
 </tiles-definitions>
