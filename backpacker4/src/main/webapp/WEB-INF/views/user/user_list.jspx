@@ -24,11 +24,11 @@
         <!-- Collection of nav links and other content for toggling -->
         <div id="navbarCollapse" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="/backpacker4/user/home">Home</a></li>
-                <li><a href="#">Your feedback</a></li>
-                <li><a href="form">Search</a></li>
-                <li><a href="#">Where are we?</a></li>
-                <li  class="active"><a href="/backpacker4/user/list">Who are we?</a></li>
+               <li><a href="/backpacker4/user/home">Home</a></li>
+                <li><a href="/backpacker4/user/feedback">Your feedback</a></li>
+                <li><a href="/backpacker4/user/search/form">Search</a></li>
+                <li><a href="/backpacker4/user/places">Where are we?</a></li>
+                <li class="active"><a href="/backpacker4/user/list">Who are we?</a></li>
                 <li><a href="/backpacker4/register/form/${appuser.id}">Profile</a></li>
             </ul>
         </div>

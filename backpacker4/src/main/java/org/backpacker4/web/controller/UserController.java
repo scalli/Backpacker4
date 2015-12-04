@@ -216,6 +216,8 @@ public class UserController extends AbstractController {
 				model.addAttribute("feedbacks", feedbacks);
 				model.addAttribute("positions", positions);
 				
+				model.addAttribute("lastposition",getAppuserLastPos(appuser));
+				
 				model.addAttribute("googleAPIurl","https://maps.googleapis.com/maps/api/js?v=3.11&sensor=false");
 				
 				addCurrentUser(model);
@@ -241,6 +243,11 @@ public class UserController extends AbstractController {
 			@Autowired
 		    private ServletContext servletContext;
 			
+			
+			private Position getAppuserLastPos(Appuser appuser){
+				return positionService.findById(appuser.getIdPosition());
+				
+			}
 			
 			//Get all the feedback of user
 			private List<Feedback> getAllFeedback(Appuser appuser){

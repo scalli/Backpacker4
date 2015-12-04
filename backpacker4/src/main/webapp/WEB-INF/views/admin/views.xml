@@ -11,4 +11,10 @@
 	<definition extends="default" name="admin/search/form">
 		<put-attribute name="body" value="/WEB-INF/views/admin/admin_search_form.jspx" />
 	</definition>
+	<definition extends="default" name="admin/list">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_list.jspx" />
+	</definition>
+	<definition extends="default" name="admin/info">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_info.jspx" />
+	</definition>
 </tiles-definitions>

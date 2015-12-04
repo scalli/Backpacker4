@@ -28,7 +28,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -137,12 +139,115 @@ public class AdminController extends AbstractController{
 			return "admin/search/form";
 		}
 		
+		/**
+		 * Shows the list of all users of backpackworld
+		 * @param model Spring MVC model
+		 * @return
+		 */
+		@RequestMapping("/list")
+		public String showUserList(Model model, HttpServletRequest httpServletRequest) {
+			
+			System.out.println("Entering user/list");
+			
+			List<Appuser> appusers = new ArrayList<Appuser>();
+			appusers = appuserService.findAll();
+			
+			model.addAttribute("appusers", appusers);
+			addCurrentUser(model);
+			
+			return "admin/list";
+		}
+		
+		/**
+		 * Shows the info of a user of Backpackworld
+		 * @param model Spring MVC model
+		 * @return
+		 */
+		@RequestMapping(value="/info/{id}", method= RequestMethod.GET)
+		public String showUserInfo(Model model, HttpServletRequest httpServletRequest,
+				@PathVariable("id") Long id) {
+			
+			System.out.println("Entering user/info/" + id);
+			
+			Appuser appuser = appuserService.findById(id);
+			List<Feedback> feedbacks = getAllFeedback(appuser);
+			List<Position> positions = getAllFeedbackPositions(appuser);
+			
+			List<String> feedbackheaders = new ArrayList<String>();
+			List<String> feedbacktext = new ArrayList<String>();
+			ArrayList<ArrayList<String>> feedbackphotos = new ArrayList<ArrayList<String>>();
+			
+			for(Feedback f : feedbacks){
+				String header = "";
+				String text = "";
+				
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+				String date = format.format(f.getDatefeedback());
+				String username = appuserService.findById(f.getIdUser()).getUsername();
+				
+				header = "On " +  date + ", " + username + " wrote this comment ";
+				header += "on a " + getTypeinfoname(f) + " in " + getCity(f) + "," + getCountry(f);
+				feedbackheaders.add(header);
+				
+				feedbacktext.add(f.getComment());
+				
+				feedbackphotos.add((ArrayList<String>)getFeedbackPhotoIds(f));
+			}
+			
+			model.addAttribute("feedbackheaders",feedbackheaders);
+			model.addAttribute("feedbacktext",feedbacktext);
+			model.addAttribute("feebackphotos",feedbackphotos);
+			
+			model.addAttribute("appuserInfo", appuser);
+			model.addAttribute("feedbacks", feedbacks);
+			model.addAttribute("positions", positions);
+			
+			model.addAttribute("lastposition",getAppuserLastPos(appuser));
+			
+			model.addAttribute("googleAPIurl","https://maps.googleapis.com/maps/api/js?v=3.11&sensor=false");
+			
+			addCurrentUser(model);
+			
+			return "admin/info";
+		}
 		
 		//--------------------------------------------------------------------------------------
 		//Private helper methods
 		//--------------------------------------------------------------------------------------
 		@Autowired
 	    private ServletContext servletContext;
+		
+		private Position getAppuserLastPos(Appuser appuser){
+			return positionService.findById(appuser.getIdPosition());
+			
+		}
+		
+		//Get all the feedback of user
+		private List<Feedback> getAllFeedback(Appuser appuser){
+			List<Feedback> feedbacks = feedbackService.findAll();
+			List<Feedback> feedbacks_return = new ArrayList<Feedback>();
+			for(Feedback feedback : feedbacks){
+				if(feedback.getIdUser().equals(appuser.getId())){
+					feedbacks_return.add(feedback);
+				}
+			}
+			
+			return feedbacks_return;
+		}
+		
+		//Get all the positions on which a user has given feedback
+		private List<Position> getAllFeedbackPositions(Appuser appuser){
+			
+			List<Position> positions = new ArrayList<Position>();
+			List<Feedback> feedbacks = feedbackService.findAll();
+			for(Feedback feedback : feedbacks){
+				if(feedback.getIdUser().equals(appuser.getId())){
+					positions.add(positionService.findById(feedback.getIdPosition()));
+				}
+			}
+			
+			return positions;
+		}
 		
 		//Returns all the Photo ids of a feedback
 		private List<String> getFeedbackPhotoIds(Feedback f){
