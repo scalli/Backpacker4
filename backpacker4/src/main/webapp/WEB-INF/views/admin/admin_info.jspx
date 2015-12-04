@@ -38,21 +38,41 @@
 	<div class="container">
 		<h3>This is the info page of user: ${appuserInfo.username}</h3>
 		<div class="row">
-	    <div class="col-sm-3" heigth="150">
+	    <div class="col-sm-3">
+	    <div class="mythumbnail">
             <img src="${pageContext.request.contextPath}/${appuserInfo.id}_FULL.jpg" width="100%" alt="no picture available"/>
 	    </div>
-	    <div class="col-sm-9">
+	    </div>
+	    <div class="col-sm-3">
 	    	<h4>Username: ${appuserInfo.username}</h4>
 	    	<h4>Places visited: </h4>
 	    	<c:forEach var="position" items="${positions}" varStatus="loop">
 	    	<dl class="dl-horizontal">
-		        <dt>${loop.index}</dt>
+		        <dt>${loop.count}</dt>
 		        <dd>${position.city},${position.country}</dd>
     		</dl>
     		</c:forEach>
     		<h4>Last known position: </h4> 
     		<h6>${lastposition.city}, ${lastposition.country}</h6>
 	    </div>
+	    <div class="col-sm-6">
+	    <div class="container">
+		  <h4>Overview of places visited:</h4>
+		  <table id="positiontable">
+		  <tbody style="display:none">
+			<c:forEach items="${positions}" var="position" varStatus="status">
+			<tr>
+				<td>'${position.city}'</td>
+	         	<td>${position.latitude}</td>
+	          	<td>${position.longitude}</td>
+	          	<td>${status.count}</td>
+	         </tr>	
+			</c:forEach>
+			</tbody>
+			</table>
+		  <div id="map" style="width: 500px; height: 400px;">Here comes map</div>
+		  </div>
+		  </div>
 	  </div>
 	</div>
 	
@@ -78,16 +98,17 @@
 					<!-- panel body -->
 			        <div id="accordion${status.index}" class="panel-collapse collapse">
 			          <div class="panel-body">
+			          <div class="row">
 			           	<c:forEach var="photo_url" items="${feebackphotos[status.index]}" varStatus="photoloop">
-							    <div class="row">
 							        <div class="col-xs-4">
-							            <a href="#" class="thumbnail">
+							        <div class="mythumbnail">
 							            <img src="${pageContext.request.contextPath}/${photo_url}" />
-							            </a>
 							        </div>
-							    </div>
+							        </div> 
 						</c:forEach>
+						
 			          </div>
+			        </div>
 			        </div>
 			  	</div>
 			  </div>
@@ -102,21 +123,6 @@
 	  
 	  <script src="http://maps.google.com/maps/api/js?sensor=false" 
           type="text/javascript">function dummy(){}</script>
-
-	  <div class="container">
-	  <h4>Overview of places visited:</h4>
-	  <table id="positiontable">
-		<c:forEach items="${positions}" var="position" varStatus="status">
-		<tr>
-			<td>'${position.city}'</td>
-         	<td>${position.latitude}</td>
-          	<td>${position.longitude}</td>
-          	<td>${status.count}</td>
-         </tr>	
-		</c:forEach>
-		</table>
-	  <div id="map" style="width: 500px; height: 400px;">Here comes map</div>
-	  </div>
 				
 	  <script type="text/javascript">
 	  <![CDATA[

@@ -117,15 +117,15 @@
 			<!-- panel body -->
 	        <div id="accordion${status.index}" class="panel-collapse collapse">
 	          <div class="panel-body">
+	          <div class="row">
 	           	<c:forEach var="photo_url" items="${feebackphotos[status.index]}" varStatus="photoloop">
-					    <div class="row">
 					        <div class="col-xs-4">
-					            <a href="#" class="thumbnail">
+					            <div class="mythumbnail">
 					            <img src="${pageContext.request.contextPath}/${photo_url}" />
-					            </a>
-					        </div>
-					    </div>
+					            </div>
+					        </div>				    
 				</c:forEach>
+				</div>
 	          </div>
 	        </div>
 	  	</div>
