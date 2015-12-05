@@ -147,7 +147,7 @@
 				<div class="mapholder" id="mapholder" height="400" width="700">Empty mapholder</div>
 			</div>
 				
-				 
+<script src="${reverseGeoloactionURL}">function dummy(){}</script>				 
 <script>
 $('#appuser_username').change(doAjaxPost);
 function doAjaxPost() {
@@ -193,6 +193,7 @@ window.onload=getLocation1;
 //     getLocation1();
 // });
 var x = document.getElementById("demo");
+var geocoder = new google.maps.Geocoder();
 
 //is not being used
 //TODO: remove when finalizing project
@@ -239,7 +240,6 @@ function showPosition1(position) {
     document.getElementById("mapholder").innerHTML = "<img src=" + imgurl + "  />"
 }
 
-//Werkt in Firefox, maar niet in Chrome
 function showPosition2(position)
 {
 	x.innerHTML = "Your current position is: <br/> Latitude: " + position.coords.latitude + 
@@ -251,17 +251,22 @@ function showPosition2(position)
     lg.value = "" + position.coords.longitude; 
     lt.value = "" + position.coords.latitude;
     
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    
+  	//GLOBAL VARIABLE
+// 	geocoder = new google.maps.Geocoder();
+// 	latlng = new google.maps.LatLng(latitude, longitude);
+	latlng = new google.maps.LatLng(latitude, longitude);
+
+    
     var lat = position.coords.latitude;
     var lng = position.coords.longitude;
-    codeLatLng(lat, lng);
+    codeLatLng(latlng,geocoder);
 	
-	var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
-    var coords = new google.maps.LatLng(latitude, longitude);
-
     var mapOptions = {
     zoom: 15,
-    center: coords,
+    center: latlng,
     mapTypeControl: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
 };
@@ -273,7 +278,7 @@ document.getElementById("mapholder"), mapOptions
 
 //place the initial marker
 var marker = new google.maps.Marker({
-position: coords,
+position: latlng,
 map: map,
 title: "Current location!"
 });
@@ -294,6 +299,10 @@ function showPosition(position) {
 
 	 lg.value = "" + position.coords.longitude; 
 	 lt.value = "" + position.coords.latitude;
+	 
+	 var latlng = new google.maps.LatLng(lat, lng);
+	 geocoder = new google.maps.Geocoder();
+		
 	 codeLatLng(lat, lng);
 	 
 	
@@ -359,9 +368,9 @@ function showError(error) {
 <script type="text/javascript">
 <![CDATA[
 //Get the country and city from the latitude and longitude
-function codeLatLng(lat, lng) {
-	var latlng = new google.maps.LatLng(lat, lng);
-	geocoder = new google.maps.Geocoder();
+function codeLatLng(latlng,geocoder) {
+// 	var latlng = new google.maps.LatLng(lat, lng);
+// 	geocoder = new google.maps.Geocoder();
 	geocoder.geocode({'latLng': latlng}, function(results, status) {
       if (status == google.maps.GeocoderStatus.OK) {
         console.log("results : " + results);

@@ -198,7 +198,8 @@ public class UserRegistrationController extends AbstractController {
 		log("model populated");
 		return JSP_FORM;
 	}
-
+	
+	
 	/**
 	 * Shows a form page in order to update an existing Appuser
 	 * @param model Spring MVC model
@@ -210,7 +211,8 @@ public class UserRegistrationController extends AbstractController {
 		log("Action 'formForUpdate'");
 		//--- Search the entity by its primary key and stores it in the model 
 		Appuser appuser = appuserService.findById(id);
-		populateModel( model, appuser, FormMode.UPDATE);	
+		populateModel( model, appuser, FormMode.UPDATE);
+		model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
 		addCurrentUser(model);
 		return JSP_FORM;
 	}
@@ -301,12 +303,14 @@ public class UserRegistrationController extends AbstractController {
 				return redirectToForm1(httpServletRequest, appuserCreated.getId() );
 			} else {
 				populateModel( model, appuser, FormMode.CREATE);
+				System.out.println("Not all valid fields");
 				return JSP_FORM;
 			}
 		} catch(Exception e) {
 			log("Action 'create' : Exception - " + e.getMessage() );
 			messageHelper.addException(model, "appuser.error.create", e);
 			populateModel( model, appuser, FormMode.CREATE);
+			System.out.println("Not all valid fields: exception");
 			return JSP_FORM;
 		}
 	}

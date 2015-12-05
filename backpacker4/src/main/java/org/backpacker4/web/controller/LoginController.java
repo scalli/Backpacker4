@@ -43,6 +43,7 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_ADMIN only!");
 	  model.setViewName("admin/home");
+	  model.addObject("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
 	  addCurrentUserURL(model);
 	  addCurrentUser(model);
 	  return model;
@@ -55,6 +56,7 @@ public class LoginController {
 	  model.addObject("title", "Spring Security Login Form - Database Authentication");
 	  model.addObject("message", "This page is for ROLE_USER only!");
 	  model.setViewName("user/home");
+	  model.addObject("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
 	  addCurrentUserURL(model);
 	  addCurrentUser(model);
 	  return model;

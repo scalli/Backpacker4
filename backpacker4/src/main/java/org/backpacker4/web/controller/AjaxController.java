@@ -1,12 +1,16 @@
 package org.backpacker4.web.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.backpacker4.bean.Appuser;
+import org.backpacker4.bean.Position;
 import org.backpacker4.business.service.AppuserService;
+import org.backpacker4.business.service.PositionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -25,6 +29,8 @@ public class AjaxController {
 	//--- Main entity service
 	@Resource
     private AppuserService appuserService; // Injected by Spring
+	@Resource
+    private PositionService positionService; // Injected by Spring
 
 	@RequestMapping(value = "/CheckUsername", method = RequestMethod.GET)
 	@ResponseBody
@@ -38,4 +44,45 @@ public class AjaxController {
 		}
 		return true;
 	}
+	
+	@RequestMapping(value = "/SaveLocation", method = RequestMethod.GET)
+	@ResponseBody
+	public boolean saveLocation (HttpServletRequest request, HttpServletResponse response) {
+		System.out.println("function SaveLocation entered...");
+
+		try {
+			Long appuserid = Long.valueOf(request.getParameter("appuserid")).longValue();
+			Appuser appuser = appuserService.findById(appuserid);
+			Position updated_position = updatePosition(request,appuser);
+			return true;
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return false;
+		}				
+	}
+	
+	//-------------------------------------------------------------------------
+	//Private helper methods
+	//-------------------------------------------------------------------------
+	private Position updatePosition(HttpServletRequest httpServletRequest, Appuser appuser){
+			
+			String lat = httpServletRequest.getParameter("latitude");
+			String lon = httpServletRequest.getParameter("longitude");
+			String city = httpServletRequest.getParameter("city");
+			String country = httpServletRequest.getParameter("country");
+			
+			BigDecimal bdlat = new BigDecimal(lat);
+			BigDecimal bdlon = new BigDecimal(lon);
+			
+			Position pos = positionService.findById((appuser.getIdPosition()));
+			pos.setLatitude(bdlat);
+			pos.setLongitude(bdlon);
+			pos.setCountry(country);
+			pos.setCity(city);
+			
+			System.out.println(city + "  " + country);
+			
+			Position positionUpdated = positionService.update(pos);
+			return positionUpdated;
+		}
 }
