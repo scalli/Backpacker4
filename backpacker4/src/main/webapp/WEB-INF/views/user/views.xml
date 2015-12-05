@@ -20,4 +20,7 @@
 	<definition extends="default" name="user/info">
 		<put-attribute name="body" value="/WEB-INF/views/user/user_info.jspx" />
 	</definition>
+	<definition extends="default" name="user/places">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_places.jspx" />
+	</definition>
 </tiles-definitions>

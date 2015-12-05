@@ -27,7 +27,7 @@
                 <li><a href="/backpacker4/user/home">Home</a></li>
                 <li><a href="#">Your feedback</a></li>
                 <li class="active"><a href="form">Search</a></li>
-                <li><a href="#">Where are we?</a></li>
+               <li><a href="/backpacker4/user/places">Where are we?</a></li>
                 <li><a href="/backpacker4/user/list">Who are we?</a></li>
                 <li><a href="/backpacker4/register/form/${appuser.id}">Profile</a></li>
             </ul>

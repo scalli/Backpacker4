@@ -17,4 +17,7 @@
 	<definition extends="default" name="admin/info">
 		<put-attribute name="body" value="/WEB-INF/views/admin/admin_info.jspx" />
 	</definition>
+	<definition extends="default" name="admin/places">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_places.jspx" />
+	</definition>
 </tiles-definitions>

@@ -225,6 +225,37 @@ public class UserController extends AbstractController {
 				return "user/info";
 			}
 			
+			/**
+			 * Shows the info of all places visited by users
+			 * @param model Spring MVC model
+			 * @return
+			 */
+			@RequestMapping(value="/places", method= RequestMethod.GET)
+			public String showPlaceInfo(Model model, HttpServletRequest httpServletRequest) {
+				
+				System.out.println("Entering user/places");
+				
+				List<Position> positions = new ArrayList<Position>();
+				List<Feedback> feedbacks = new ArrayList<Feedback>();
+				feedbacks = feedbackService.findAll();
+				for(Feedback feedback: feedbacks){
+					positions.add(positionService.findById(feedback.getIdPosition()));
+				}
+				
+				int number_of_positions = positions.size();
+				int number_of_users = appuserService.findAll().size();
+				
+				model.addAttribute("positions", positions);
+				model.addAttribute("number_of_positions",number_of_positions);
+				model.addAttribute("number_of_users",number_of_users);
+							
+				model.addAttribute("googleAPIurl","https://maps.googleapis.com/maps/api/js?v=3.11&sensor=false");
+				
+				addCurrentUser(model);
+				
+				return "user/places";
+			}
+			
 			
 			@RequestMapping(value = "/feedback", method = RequestMethod.GET)
 			public ModelAndView userFeedbackPagina() {
