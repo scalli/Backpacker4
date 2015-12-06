@@ -40,7 +40,7 @@
 		<div class="row">
 	    <div class="col-sm-3">
 	    <div class="mythumbnail">
-            <img src="${pageContext.request.contextPath}/${appuserInfo.id}_FULL.jpg" alt="no picture available"/>
+            <img src="${pageContext.request.contextPath}/${appuserInfo.idPhoto}_FULL.jpg" alt="no picture available"/>
 	    </div>
 	    </div>
 	    <div class="col-sm-3">
