@@ -148,6 +148,8 @@ public class UserController extends AbstractController {
 				model.addAttribute("feedbacktext",feedbacktext);
 				model.addAttribute("feebackphotos",feedbackphotos);
 				
+				model.addAttribute("feedbacks", selection);
+				
 				addCurrentUser(model);
 
 				return "user/search/form";
@@ -289,10 +291,18 @@ public class UserController extends AbstractController {
 				
 				//redirect to the page we came from
 				String returnpage = httpServletRequest.getParameter("returnpage");
+				
 				if(returnpage.equals("user_info")){
 					String appuserInfoId = httpServletRequest.getParameter("userid");
 //					redirectAttributes.addAttribute("id", appuserInfoId);
 					return "redirect:/user/info/" + appuserInfoId;
+					
+				}
+				
+				if(returnpage.equals("user_search_form")){
+					String appuserInfoId = httpServletRequest.getParameter("userid");
+//					redirectAttributes.addAttribute("id", appuserInfoId);
+					return "redirect:/user/search/form";
 					
 				}
 				
