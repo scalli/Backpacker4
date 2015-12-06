@@ -268,6 +268,38 @@ public class UserController extends AbstractController {
 			  return model;
 			}
 			
+			/**
+			 * Shows the info of a user of Backpackworld
+			 * @param model Spring MVC model
+			 * @return
+			 */
+			@RequestMapping(value="/feedback/delete", method= RequestMethod.GET)
+			public String deleteUserFeedback(Model model, HttpServletRequest httpServletRequest){
+				
+				String id = httpServletRequest.getParameter("id");
+				Long feedbackid = Long.valueOf(id).longValue();
+				
+				try {
+					feedbackService.delete(feedbackid);
+//					model.addAttribute("deletesucces",true);
+				} catch (Exception e) {
+//					model.addAttribute("deletesucces",false);
+					e.printStackTrace();
+				}
+				
+				//redirect to the page we came from
+				String returnpage = httpServletRequest.getParameter("returnpage");
+				if(returnpage.equals("user_info")){
+					String appuserInfoId = httpServletRequest.getParameter("userid");
+//					redirectAttributes.addAttribute("id", appuserInfoId);
+					return "redirect:/user/info/" + appuserInfoId;
+					
+				}
+				
+				return "";
+
+			}
+			
 			//--------------------------------------------------------------------------------------
 			//Private helper methods
 			//--------------------------------------------------------------------------------------
