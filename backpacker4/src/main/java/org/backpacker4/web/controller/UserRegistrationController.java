@@ -213,7 +213,7 @@ public class UserRegistrationController extends AbstractController {
 		Appuser appuser = appuserService.findById(id);
 		populateModel( model, appuser, FormMode.UPDATE);
 		model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
-		addCurrentUser(model);
+//		addCurrentUser(model);
 		return JSP_FORM;
 	}
 
@@ -246,18 +246,20 @@ public class UserRegistrationController extends AbstractController {
 				userroles.setIduserRoles(0);
 				userroles.setUserid(appuserCreated.getId());
 				userroles.setUserrole("ROLE_USER");
-				System.out.println(userroles.toString());
+				System.out.println("De userroles zijn: " + userroles.toString());
 				userRolesService.create(userroles); 
+				System.out.println("userroles created");
 				
 				//Add the image to Database column photo
 				if (!image.isEmpty()) {
-					try {
-							validateImage(image);
-							System.out.println("image validation (jpg) succeeded...");
-					} catch (RuntimeException re) {
-					bindingResult.reject(re.getMessage());
-					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
-					}
+					System.out.println("image is not empty!");
+//					try {
+//							validateImage(image);
+//							System.out.println("image validation (jpg) succeeded...");
+//					} catch (RuntimeException re) {
+//					bindingResult.reject(re.getMessage());
+//					return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+//					}
 					 
 					try {
 						Photo afbeelding = new Photo();
@@ -468,7 +470,7 @@ public class UserRegistrationController extends AbstractController {
 	}
 	
 	private void validateImage(MultipartFile image) {
-		if (!image.getContentType().equals("image/*")) {
+		if (!image.getContentType().equals("image/jpg")) {
 		throw new RuntimeException("Only JPG images are accepted");
 		}
 		}
@@ -584,20 +586,25 @@ private Position updatePosition(HttpServletRequest httpServletRequest, Appuser a
 		
 		//add the current user
 			private void addCurrentUser(Model model){	
-					UserDetails userDetails =
-					(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-					model.addAttribute("username",userDetails.getUsername());
-					System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
-					model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
-					
+				//Add current user only if someone is logged in	
+				try {
+					UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+							.getPrincipal();
+					model.addAttribute("username", userDetails.getUsername());
+					System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());
+					;
+					model.addAttribute("appuser", getAppuser(userDetails.getUsername()));
 					String url = "";
-					List<Appuser> allAppUsers = appuserService.findAll(); 
-					for(Appuser appuser : allAppUsers){
-						if (appuser.getUsername().equals(userDetails.getUsername())){
-							url = servletContext.getRealPath("/")
-									+ appuser.getIdPhoto() + "_THUMB.jpg";
+					List<Appuser> allAppUsers = appuserService.findAll();
+					for (Appuser appuser : allAppUsers) {
+						if (appuser.getUsername().equals(userDetails.getUsername())) {
+							url = servletContext.getRealPath("/") + appuser.getIdPhoto() + "_THUMB.jpg";
 						}
 					}
-					model.addAttribute("thumburl",url);
+					model.addAttribute("thumburl", url);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				}
 }

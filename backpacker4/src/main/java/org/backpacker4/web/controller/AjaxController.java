@@ -52,6 +52,7 @@ public class AjaxController {
 
 		try {
 			Long appuserid = Long.valueOf(request.getParameter("appuserid")).longValue();
+			System.out.println("appuserid:" + appuserid);
 			Appuser appuser = appuserService.findById(appuserid);
 			Position updated_position = updatePosition(request,appuser);
 			return true;
