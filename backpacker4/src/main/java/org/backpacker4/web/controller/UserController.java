@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -271,21 +272,22 @@ public class UserController extends AbstractController {
 			}
 			
 			/**
-			 * Shows the info of a user of Backpackworld
+			 * Deletes a feedback with a given id (in request)
 			 * @param model Spring MVC model
 			 * @return
 			 */
 			@RequestMapping(value="/feedback/delete", method= RequestMethod.GET)
-			public String deleteUserFeedback(Model model, HttpServletRequest httpServletRequest){
+			public String deleteUserFeedback(Model model, HttpServletRequest httpServletRequest,
+					RedirectAttributes redirectAttrs){
 				
 				String id = httpServletRequest.getParameter("id");
 				Long feedbackid = Long.valueOf(id).longValue();
 				
 				try {
 					feedbackService.delete(feedbackid);
-//					model.addAttribute("deletesucces",true);
+					redirectAttrs.addFlashAttribute("deletesucces", "1");
 				} catch (Exception e) {
-//					model.addAttribute("deletesucces",false);
+					redirectAttrs.addFlashAttribute("deletesucces", "0");
 					e.printStackTrace();
 				}
 				
@@ -295,6 +297,7 @@ public class UserController extends AbstractController {
 				if(returnpage.equals("user_info")){
 					String appuserInfoId = httpServletRequest.getParameter("userid");
 //					redirectAttributes.addAttribute("id", appuserInfoId);
+//					redirectAttrs.addFlashAttribute("deletesucces", "1");
 					return "redirect:/user/info/" + appuserInfoId;
 					
 				}
@@ -302,6 +305,7 @@ public class UserController extends AbstractController {
 				if(returnpage.equals("user_search_form")){
 					String appuserInfoId = httpServletRequest.getParameter("userid");
 //					redirectAttributes.addAttribute("id", appuserInfoId);
+//					redirectAttrs.addFlashAttribute("deletesucces", "1");
 					return "redirect:/user/search/form";
 					
 				}

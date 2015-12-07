@@ -365,9 +365,14 @@ public class UserRegistrationController extends AbstractController {
 					}
 					 
 					try {
-						Photo afbeelding = photoService.findById(appuserCreated.getIdPhoto());
-//						Photo afbeelding = new Photo();
-//						afbeelding.setId(Long.parseLong(String.valueOf(0)));
+						Photo afbeelding;
+						if(appuserCreated.getIdPhoto() != null)
+							afbeelding = photoService.findById(appuserCreated.getIdPhoto());
+						else {
+							//No image has been uploaded yet
+							afbeelding = new Photo();
+							afbeelding.setId(Long.parseLong(String.valueOf(0)));
+						}
 						afbeelding.setComment("");
 						//dummy value for position
 						afbeelding.setIdPosition(Long.parseLong(String.valueOf(1)));

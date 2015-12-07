@@ -207,5 +207,60 @@
    <p></p>
    </div>
    </c:forEach>
-  
+   
+  	  <div class="container">	
+	   <h5 id="deletesucces" class="hidden">${deletesucces}</h5>
+ 	</div>
+   
+   <script>
+	 $(document).ready(showNotification);
+	 var Notification = window.Notification || window.mozNotification || window.webkitNotification;
+
+	Notification.requestPermission(function (permission) {
+		// console.log(permission);
+	});
+	
+	function showNotification() {
+		var succes = document.getElementById("deletesucces");
+// 		alert(succes.innerHTML);
+		if(succes.innerHTML == "1"){
+			var instance = new Notification(
+				"Delete confirmation", {
+					body: "The item has been succesfully deleted."
+				}
+			);
+	
+			instance.onclick = function () {
+				// Something to do
+			};
+			instance.onerror = function () {
+				// Something to do
+			};
+			instance.onshow = function () {
+				// Something to do
+			};
+			instance.onclose = function () {
+				// Something to do
+			};
+	
+			return false;
+		}
+	}
+	</script>
+	<script>
+	// Javascript weather plugin openweathermap
+	// 	$(document).ready(fun);
+	function fun() 
+	{
+	   var data="hello";
+	   $.get("http://api.openweathermap.org/data/2.5/weather?q=London&amp;APPID=dd9c57c2488d0da2a32a13b46ae678a5", function(response) {
+	        data = response;
+	        alert(data.coord.lon);
+	   }).error(function(){
+	  alert("Sorry could not proceed");
+	});
+
+	   return data;
+	}
+	</script>
 </div>

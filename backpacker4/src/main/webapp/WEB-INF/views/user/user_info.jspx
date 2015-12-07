@@ -81,7 +81,7 @@
 	
 	<div class="container">
 		<div class="row">
-	    <div class="col-sm-12" heigth="150">
+
 	    	<h4>Feedback added by ${appuserInfo.username}: </h4>
 	    	<c:forEach var="feedbackheader" items="${feedbackheaders}" varStatus="status">
 			<div class="container">	
@@ -90,14 +90,14 @@
 			        <div class="panel-heading"> <!-- panel-heading -->
 			            <div class="container">
 			            <div class="row">
-			            <div class="col-xs-9">
-			            <h7 class="panel-title"> <!-- title 1 -->
-			            <a data-toggle="collapse" data-parent="#accordion" href="#accordion${status.index}">
-			              ${feedbackheader}
+			            <div class="col-xs-8">
+			            <h7 class="panel-title" onclick="showWeather(${status.index})"> <!-- title 1 -->
+			            <a id="header${status.index}" data-toggle="collapse" data-parent="#accordion" href="#accordion${status.index}">
+			              <b>${feedbackheader}</b>
 			            </a>
 			           </h7>
 			           </div>
-			           <div class="col-xs-3">
+			           <div class="col-xs-2">
 						 <c:if test="${feedbacks[status.index].idUser eq appuser.id}">
 						    <div>
 								<a class="btn btn-primary btn-sm" href="#">
@@ -129,9 +129,17 @@
 							</div>
 						 </c:if>
 			           </div>
+			           <div class="col-xs-2">
+			           	<div id="weather${status.index}" class="bluebackground"></div>
 			           </div>
 			           </div>
-			           <h5> ${feedbacktext[status.index]}</h5>
+			           <div class="row">
+			           <div class="col-xs-8">
+			           	${feedbacktext[status.index]}
+			           	</div>
+			           </div>
+			           </div>
+			           
 			        </div>
 					<!-- panel body -->
 			        <div id="accordion${status.index}" class="panel-collapse collapse">
@@ -154,13 +162,14 @@
 		   <p></p>
 		   </div>
 		   </c:forEach>
-	   	</div>
+
 	   	</div>
 	  </div>
 	  
-	  <script src="http://maps.google.com/maps/api/js?sensor=false" 
-          type="text/javascript">function dummy(){}</script>
-
+	  
+	  <div class="container">	
+		   <h5 id="deletesucces" class="hidden">${deletesucces}</h5>
+	 </div>
 				
 	  <script type="text/javascript">
 	  <![CDATA[
@@ -231,4 +240,88 @@
 	  ]]>
 	  </script>
 	 
+	 <script>
+	 $(document).ready(showNotification);
+	 var Notification = window.Notification || window.mozNotification || window.webkitNotification;
+
+	Notification.requestPermission(function (permission) {
+		// console.log(permission);
+	});
+	
+	function showNotification() {
+		var succes = document.getElementById("deletesucces");
+// 		alert(succes.innerHTML);
+		if(succes.innerHTML == "1"){
+			var instance = new Notification(
+				"Delete confirmation", {
+					body: "The item has been succesfully deleted."
+				}
+			);
+	
+			instance.onclick = function () {
+				// Something to do
+			};
+			instance.onerror = function () {
+				// Something to do
+			};
+			instance.onshow = function () {
+				// Something to do
+			};
+			instance.onclose = function () {
+				// Something to do
+			};
+	
+			return false;
+		}
+	}
+	</script>
+	<script>
+// 	$(document).ready(function() {
+// 		  loadWeather('Bern',''); //@params location, woeid
+// 		});
+	<![CDATA[
+		function loadWeather(index, location, woeid) {
+// 			alert("location:" + location + " and woeid: "+ woeid);
+		  $.simpleWeather({
+		    location: location,
+		    woeid: woeid,
+		    unit: 'c',
+		    success: function(weather) {
+		      html = '<h5><i class="icon-'+weather.code+'"></i> '+weather.temp+'&deg;'+weather.units.temp+'</h5>';
+// 		      html += '<ul><li>'+weather.city+', '+weather.region+'</li>';
+		      html += '<ul><li class="currently">'+weather.currently+'</li>';  
+		      html += '</ul>'
+		      $("#weather" + index).html(html);
+		    },
+		    error: function(error) {
+		      $("#weather" + index).html('<p>'+error+'</p>');
+		    }
+		  });
+		}
+	]]>
+	</script>
+	<script>
+	function showWeather(index){
+// 		alert(index);
+		toggle_visibility("weather" + index);
+		
+		//get the city from the header that was clicked
+		var header = document.getElementById("header" + index).innerHTML;
+		var begin_city_pos = header.lastIndexOf(" in ") + 4;
+		var end_city_pos = header.lastIndexOf(",");
+		var city = header.slice(begin_city_pos, end_city_pos);
+// 		alert(city);
+		loadWeather(index,city,'');
+	}
+	
+	function toggle_visibility(id) {
+	       var e = document.getElementById(id);
+	       if(e.style.display == 'block')
+	          e.style.display = 'none';
+	       else
+	          e.style.display = 'block';
+	    }
+	</script>
+	
+
 </div>

@@ -414,6 +414,8 @@ document.getElementById('image').addEventListener('change', function(){
 }, false);
 </script>
 
+
+
 	    </fieldset>
 	</div>	
 </div>

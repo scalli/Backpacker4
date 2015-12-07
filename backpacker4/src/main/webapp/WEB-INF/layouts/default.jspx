@@ -43,6 +43,7 @@
 	<script type="text/javascript" src="${js_url_bootstrap_datepicker}"><jsp:text/></script>
 	<script type="text/javascript" src="${js_url_bootstrap_datepicker_locale}" charset="UTF-8"><jsp:text/></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=false">function dummy(){}</script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.simpleWeather/3.0.2/jquery.simpleWeather.min.js">function dummy(){}</script>
 
 </head>
 <body>
