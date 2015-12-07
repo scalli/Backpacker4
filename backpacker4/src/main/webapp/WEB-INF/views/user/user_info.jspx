@@ -80,15 +80,14 @@
 	</div>
 	
 	<div class="container">
-		<div class="row">
-
-	    	<h4>Feedback added by ${appuserInfo.username}: </h4>
+		
+			<h4>Feedback added by ${appuserInfo.username}: </h4>
+			<div class="panel-group" id="accordion">
 	    	<c:forEach var="feedbackheader" items="${feedbackheaders}" varStatus="status">
-			<div class="container">	
-				<div class="panel-group" id="accordion">
+				
 			  	 <div class="panel panel-default">
 			        <div class="panel-heading"> <!-- panel-heading -->
-			            <div class="container">
+			            
 			            <div class="row">
 			            <div class="col-xs-8">
 			            <h7 class="panel-title" onclick="showWeather(${status.index})"> <!-- title 1 -->
@@ -138,7 +137,7 @@
 			           	${feedbacktext[status.index]}
 			           	</div>
 			           </div>
-			           </div>
+			          
 			           
 			        </div>
 					<!-- panel body -->
@@ -156,14 +155,13 @@
 			          </div>
 			        </div>
 			  	</div>
-			  </div>
-		   </div>
+			  
+		   
 		   <div class="container">	
 		   <p></p>
 		   </div>
 		   </c:forEach>
-
-	   	</div>
+		</div>
 	  </div>
 	  
 	  

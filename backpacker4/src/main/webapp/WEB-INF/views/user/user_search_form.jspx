@@ -99,24 +99,22 @@
 	</div>	
 	
 	<div class="container">
-	<p>We found these comments by backpackers for your criteria:</p>
-	</div>
-	
-		    	<c:forEach var="feedbackheader" items="${feedbackheaders}" varStatus="status">
-			<div class="container">	
-				<div class="panel-group" id="accordion">
+			<p>We found these comments by backpackers for your criteria:</p>
+			<div class="panel-group" id="accordion">
+	    	<c:forEach var="feedbackheader" items="${feedbackheaders}" varStatus="status">
+				
 			  	 <div class="panel panel-default">
 			        <div class="panel-heading"> <!-- panel-heading -->
-			            <div class="container">
+			            
 			            <div class="row">
-			            <div class="col-xs-9">
-			            <h7 class="panel-title"> <!-- title 1 -->
-			            <a data-toggle="collapse" data-parent="#accordion" href="#accordion${status.index}">
-			              ${feedbackheader}
+			            <div class="col-xs-8">
+			            <h7 class="panel-title" onclick="showWeather(${status.index})"> <!-- title 1 -->
+			            <a id="header${status.index}" data-toggle="collapse" data-parent="#accordion" href="#accordion${status.index}">
+			              <b>${feedbackheader}</b>
 			            </a>
 			           </h7>
 			           </div>
-			           <div class="col-xs-3">
+			           <div class="col-xs-2">
 						 <c:if test="${feedbacks[status.index].idUser eq appuser.id}">
 						    <div>
 								<a class="btn btn-primary btn-sm" href="#">
@@ -138,7 +136,7 @@
 								      </div>
 								      <div class="modal-footer">
 								        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-										<a class="btn btn-danger btn-sm" href="/backpacker4/user/feedback/delete?id=${feedbacks[status.index].id}&amp;returnpage=user_search_form">
+										<a class="btn btn-danger btn-sm" href="/backpacker4/user/feedback/delete?id=${feedbacks[status.index].id}&amp;returnpage=user_info&amp;userid=${appuserInfo.id}">
 								 		 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Delete
 										</a>								        
 								      </div>
@@ -148,9 +146,17 @@
 							</div>
 						 </c:if>
 			           </div>
+			           <div class="col-xs-2">
+			           	<div id="weather${status.index}" class="bluebackground"></div>
 			           </div>
 			           </div>
-			           <h5> ${feedbacktext[status.index]}</h5>
+			           <div class="row">
+			           <div class="col-xs-8">
+			           	${feedbacktext[status.index]}
+			           	</div>
+			           </div>
+			          
+			           
 			        </div>
 					<!-- panel body -->
 			        <div id="accordion${status.index}" class="panel-collapse collapse">
@@ -167,46 +173,14 @@
 			          </div>
 			        </div>
 			  	</div>
-			  </div>
-		   </div>
+			  
+		   
 		   <div class="container">	
 		   <p></p>
 		   </div>
 		   </c:forEach>
-	
-	<c:forEach var="feedbackheader" items="${feedbackheaders}" varStatus="status">
-	<div class="container">	
-		<div class="panel-group" id="accordion">
-	  	 <div class="panel panel-default">
-	        <div class="panel-heading"> <!-- panel-heading -->
-	            <h7 class="panel-title"> <!-- title 1 -->
-	            <a data-toggle="collapse" data-parent="#accordion" href="#accordion${status.index}">
-	              ${feedbackheader}
-	            </a>
-	           </h7>
-	           <h5> ${feedbacktext[status.index]}</h5>
-	        </div>
-			<!-- panel body -->
-	        <div id="accordion${status.index}" class="panel-collapse collapse">
-	          <div class="panel-body">
-	          <div class="row">
-	           	<c:forEach var="photo_url" items="${feebackphotos[status.index]}" varStatus="photoloop">
-					        <div class="col-xs-4">
-					            <div class="mythumbnail">
-					            <img src="${pageContext.request.contextPath}/${photo_url}" />
-					            </div>
-					        </div>				    
-				</c:forEach>
-				</div>
-	          </div>
-	        </div>
-	  	</div>
+		</div>
 	  </div>
-   </div>
-   <div class="container">	
-   <p></p>
-   </div>
-   </c:forEach>
    
   	  <div class="container">	
 	   <h5 id="deletesucces" class="hidden">${deletesucces}</h5>
@@ -247,20 +221,51 @@
 		}
 	}
 	</script>
+		<script>
+// 	$(document).ready(function() {
+// 		  loadWeather('Bern',''); //@params location, woeid
+// 		});
+	<![CDATA[
+		function loadWeather(index, location, woeid) {
+// 			alert("location:" + location + " and woeid: "+ woeid);
+		  $.simpleWeather({
+		    location: location,
+		    woeid: woeid,
+		    unit: 'c',
+		    success: function(weather) {
+		      html = '<h5><i class="icon-'+weather.code+'"></i> '+weather.temp+'&deg;'+weather.units.temp+'</h5>';
+// 		      html += '<ul><li>'+weather.city+', '+weather.region+'</li>';
+		      html += '<ul><li class="currently">'+weather.currently+'</li>';  
+		      html += '</ul>'
+		      $("#weather" + index).html(html);
+		    },
+		    error: function(error) {
+		      $("#weather" + index).html('<p>'+error+'</p>');
+		    }
+		  });
+		}
+	]]>
+	</script>
 	<script>
-	// Javascript weather plugin openweathermap
-	// 	$(document).ready(fun);
-	function fun() 
-	{
-	   var data="hello";
-	   $.get("http://api.openweathermap.org/data/2.5/weather?q=London&amp;APPID=dd9c57c2488d0da2a32a13b46ae678a5", function(response) {
-	        data = response;
-	        alert(data.coord.lon);
-	   }).error(function(){
-	  alert("Sorry could not proceed");
-	});
-
-	   return data;
+	function showWeather(index){
+// 		alert(index);
+		toggle_visibility("weather" + index);
+		
+		//get the city from the header that was clicked
+		var header = document.getElementById("header" + index).innerHTML;
+		var begin_city_pos = header.lastIndexOf(" in ") + 4;
+		var end_city_pos = header.lastIndexOf(",");
+		var city = header.slice(begin_city_pos, end_city_pos);
+// 		alert(city);
+		loadWeather(index,city,'');
 	}
+	
+	function toggle_visibility(id) {
+	       var e = document.getElementById(id);
+	       if(e.style.display == 'block')
+	          e.style.display = 'none';
+	       else
+	          e.style.display = 'block';
+	    }
 	</script>
 </div>
