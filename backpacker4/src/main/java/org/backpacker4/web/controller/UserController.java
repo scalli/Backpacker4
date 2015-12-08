@@ -280,7 +280,8 @@ public class UserController extends AbstractController {
 		    public String saveNewFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
-		        String saveDirectory = servletContext.getRealPath("/");
+		       
+		    	String saveDirectory = servletContext.getRealPath("/");
 		        System.out.println("Files will be saved at:" + saveDirectory);
 		        
 		        //Get parameters from request
@@ -318,11 +319,14 @@ public class UserController extends AbstractController {
 		 
 		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
 		            for (MultipartFile multipartFile : crunchifyFiles) {
-		            	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
-		                String fileName = foto.getId() + "_FULL";
-		                if (!"".equalsIgnoreCase(fileName)) {
-		                    // Handle file content - multipartFile.getInputStream()
-		                    multipartFile
+		            	
+		                System.out.println(multipartFile.getContentType());
+		                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+		                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                	String fileName = foto.getId() + "_FULL.jpg";
+		                	
+		                	// Handle file content - multipartFile.getInputStream()
+		                	multipartFile
 		                            .transferTo(new File(saveDirectory + fileName));
 		                    fileNames.add(fileName);
 		                }
@@ -496,13 +500,13 @@ public class UserController extends AbstractController {
 				
 				//Add photo to database
 				Photo afbeeldingSaved = photoService.create(afbeelding);
-				System.out.println("afbeelding saved ...");
+				System.out.println("afbeelding saved with id..." + afbeeldingSaved.getId());
 				
 				
 				afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
 				afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
 				
-				afbeeldingSaved = photoService.save(afbeeldingSaved);
+				afbeeldingSaved = photoService.update(afbeeldingSaved);
 				
 				//Save in table Feedback_Photo
 				FeedbackPhoto fp = new FeedbackPhoto();

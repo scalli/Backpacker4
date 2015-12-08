@@ -105,7 +105,7 @@
 		<div class="container">
 					<div class="form-group"> 
             <p>Select files to upload. Press Add button to add more file
-                inputs.</p>
+                inputs. Attention: only jpeg files are accepted!</p>
  
             <table id="fileTable">
                 <tr>
