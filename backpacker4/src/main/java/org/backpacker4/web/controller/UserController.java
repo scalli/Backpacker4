@@ -332,6 +332,64 @@ public class UserController extends AbstractController {
 		        map.addAttribute("files", fileNames);
 		        return "user/feedback1";
 		    }
+		    
+		    @RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
+		    public String updateFeedback(
+		            @ModelAttribute("uploadForm") FileUpload uploadForm,
+		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
+		        String saveDirectory = servletContext.getRealPath("/");
+		        System.out.println("Files will be saved at:" + saveDirectory);
+		        
+		        //Get parameters from request
+		        String typeinfo = httpServletRequest.getParameter("typeinfo");
+		        Long typeinfoid = getTypeinfoId(typeinfo);
+		        String comment = httpServletRequest.getParameter("comment");
+		        String feedbackString = httpServletRequest.getParameter("feedbackid");
+		        Feedback f = feedbackService.findById(Long.parseLong(feedbackString));
+		        
+		        System.out.println("typeinfo = " + typeinfo);
+		        System.out.println("comment= " + comment);
+		        
+		      //Save the position
+				Position position = positionService.findById(f.getIdPosition());
+				position = updatePosition(httpServletRequest,position);
+				System.out.println("Postion:" + position.toString());
+				
+				//Get the date of today
+				Calendar cal = Calendar.getInstance();
+				Date today = cal.getTime();
+				
+				//Construct the feedback, not the id
+				f.setComment(comment);
+				f.setIdTypeinfo(getTypeinfoId(typeinfo));
+				f.setIdPosition(position.getId());
+				f.setDatefeedback(today);
+				f.setIdUser(getCurrentUser().getId());
+				
+				//Save the feedback in DB
+				f = feedbackService.save(f);
+		 
+		        //Handle the files (images) to save
+				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+		 
+		        List<String> fileNames = new ArrayList<String>();
+		 
+		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+		            for (MultipartFile multipartFile : crunchifyFiles) {
+		            	Photo foto = constructPhoto(position,getCurrentUser(),f);
+		                String fileName = foto.getId() + "_FULL.jpg";
+		                if (!"".equalsIgnoreCase(fileName)) {
+		                    // Handle file content - multipartFile.getInputStream()
+		                    multipartFile
+		                            .transferTo(new File(saveDirectory + fileName));
+		                    fileNames.add(fileName);
+		                }
+		            }
+		        }
+		 
+		        map.addAttribute("files", fileNames);
+		        return "user/feedback1";
+		    }
 			
 			
 			@RequestMapping(value = "/feedback", method = RequestMethod.GET)
@@ -353,6 +411,23 @@ public class UserController extends AbstractController {
 			  addCurrentUser(model);
 			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
 			  model.addObject("asyncdefer"," async defer");
+			  return model;
+			}
+			
+			@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
+			public ModelAndView userFeedback1UpdatePagina(HttpServletRequest httpServletRequest) {
+
+			 long feedbackid = Long.parseLong(httpServletRequest.getParameter("feedbackid"));
+			 Feedback feedback = feedbackService.findById(feedbackid);
+			 Position position = positionService.findById(feedback.getIdPosition());
+				
+			 ModelAndView model = new ModelAndView();
+			  model.setViewName("user/feedback1/update");
+			  addCurrentUser(model);
+			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
+			  model.addObject("asyncdefer"," async defer");
+			  model.addObject("feedback",feedback);
+			  model.addObject("position",position);
 			  return model;
 			}
 			
@@ -756,5 +831,27 @@ public class UserController extends AbstractController {
 				
 				Position positionCreated = positionService.create(pos);
 				return positionCreated;
+			}
+			
+			private Position updatePosition(HttpServletRequest httpServletRequest, Position oldpos){
+				
+				String lat = httpServletRequest.getParameter("latitude");
+				String lon = httpServletRequest.getParameter("longitude");
+				String city = httpServletRequest.getParameter("city");
+				String country = httpServletRequest.getParameter("country");
+				System.out.println(city + "  " + country);
+				
+				BigDecimal bdlat = new BigDecimal(lat);
+				BigDecimal bdlon = new BigDecimal(lon);
+				
+				Position pos = new Position();
+				pos.setId(oldpos.getId());
+				pos.setLatitude(bdlat);
+				pos.setLongitude(bdlon);
+				pos.setCountry(country);
+				pos.setCity(city);
+				
+				Position positionUpdated = positionService.save(pos);
+				return positionUpdated;
 			}
 }

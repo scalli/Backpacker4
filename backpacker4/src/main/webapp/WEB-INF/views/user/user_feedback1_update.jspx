@@ -46,11 +46,12 @@
       <p>link 4</p>
     </div>
     <div class="col-sm-9">
-    <form:form method="POST" action="/backpacker4/user/feedback1/savefiles?${_csrf.parameterName}=${_csrf.token}"
+    <form:form method="POST" action="/backpacker4/user/feedback1/updatefiles?${_csrf.parameterName}=${_csrf.token}"
             modelAttribute="uploadForm" enctype="multipart/form-data">
     <div class="row">
     <div class="container, col-sm-12">
-    <input id="pac-input" class="controls" type="text" onchange="getPosition()" placeholder="Enter a location" required="required"/>
+    <input id="pac-input" class="controls" type="text" onchange="getPosition()" value="${position.city},${position.country}" placeholder="Enter a location" required="required"/>
+    	
 		    <div id="type-selector" class="controls">
 		      <input type="radio" name="type" id="changetype-all" checked="checked" />
 		      <label for="changetype-all">All</label>
@@ -71,13 +72,13 @@
 <div class="container">
 					<div class="form-group">
 						<label for="latitude">latitude:</label>
-						<input type="text" name="latitude" id="latitude" value="latitude" /> 
+						<input type="text" name="latitude" id="latitude" value="${position.latitude}" /> 
 						<label for="longitude">longitude:</label>
-						<input type="text" name="longitude" id="longitude" value="longitude" /> 
+						<input type="text" name="longitude" id="longitude" value="${position.longitude}" /> 
 						<label for="country">country:</label>
-						<input type="text" name="country" id="country" value="country" /> 
+						<input type="text" name="country" id="country" value="${position.country}" /> 
 						<label for="city">city:</label>
-						<input type="text" name="city" id="city" value="city" /> 
+						<input type="text" name="city" id="city" value="${position.city}" /> 
 					</div>
 				</div>
 	</div>
@@ -99,7 +100,7 @@
 		</div>
 		<div class="row">
 			  <label for="comment">Comment:</label>
-			  <textarea class="form-control" rows="5" required="required" name="comment" id="comment">t</textarea>
+			  <textarea class="form-control" rows="5" required="required" name="comment" id="comment">${feedback.comment}</textarea>
 		</div>
 		<div class="row">
 		<div class="container">
@@ -133,6 +134,7 @@
 						<button type="submit" class="btn btn-primary btn-lg btn-block"><s:message code="save"/></button>
 					</div>
 				</div>
+				<input type="hidden" name="feedbackid" value="${feedback.id}"/>
 		</form:form>
 		</div>
 		</div>
