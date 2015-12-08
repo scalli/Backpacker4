@@ -11,6 +11,9 @@
 	<definition extends="default" name="user/feedback">
 		<put-attribute name="body" value="/WEB-INF/views/user/user_feedback.jspx" />
 	</definition>
+	<definition extends="default" name="user/feedback1">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_feedback1.jspx" />
+	</definition>
 	<definition extends="default" name="user/search/form">
 		<put-attribute name="body" value="/WEB-INF/views/user/user_search_form.jspx" />
 	</definition>

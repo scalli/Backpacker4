@@ -30,10 +30,12 @@
 	<link href="${css_url_bootstrap_theme}" rel="stylesheet"  type="text/css" />
 	<link href="${css_url_datepicker}" rel="stylesheet"  type="text/css" />
 	<link href="${css_url_styles}" rel="stylesheet"  type="text/css" />
+	<link href="/backpacker4/css/dropzone.css" type="text/css" rel="stylesheet" />
 	
 	<!-- javascript -->
+	<spring:url value="https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&amp;signed_in=true&amp;libraries=places&amp;callback=initMap" var="googleapi"/>
 	<spring:url value="/js/validation.js" var="js_url_validation" />
-	<spring:url value="/js/jquery-1.10.2.min.js" var="js_url_jquery" />
+	<spring:url value="/js/jquery-1.10.2.js" var="js_url_jquery" />
 	<spring:url value="/js/bootstrap.js" var="js_url_bootstrap" />
 	<spring:url value="/js/bootstrap-datepicker.js" var="js_url_bootstrap_datepicker" />
 	<spring:url value="/js/locales/bootstrap-datepicker.${fn:substring(plocale, 0, 2)}.js" var="js_url_bootstrap_datepicker_locale" />
@@ -42,9 +44,10 @@
 	<script type="text/javascript" src="${js_url_bootstrap}"><jsp:text/></script>
 	<script type="text/javascript" src="${js_url_bootstrap_datepicker}"><jsp:text/></script>
 	<script type="text/javascript" src="${js_url_bootstrap_datepicker_locale}" charset="UTF-8"><jsp:text/></script>
-	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=false">function dummy(){}</script>
+<!-- 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=false">function dummy(){}</script> -->
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.simpleWeather/3.0.2/jquery.simpleWeather.min.js">function dummy(){}</script>
-
+ 	<script src="${googleapi}" async="async" defer="defer">function dummy(){}</script>
+<!--  	<script async="async" defer="defer" type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&amp;key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&amp;signed_in=true&amp;callback=initMap&amp;sensor=false">function dummy(){}</script> -->
 </head>
 <body>
 

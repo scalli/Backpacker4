@@ -405,7 +405,7 @@ function codeLatLng(lat, lng) {
 <script>
 document.getElementById('image').addEventListener('change', function(){
     var file = this.files[0];
-    document.getElementById('fileinfo').innerHTML="file ready for upload: " + file.name + "(" + file.size + ")";
+    document.getElementById('fileinfo').innerHTML="file ready for upload: " + file.name + "(" + file.size + "kB)";
     // This code is only for demo ...
     console.log("name : " + file.name);
     console.log("size : " + file.size);

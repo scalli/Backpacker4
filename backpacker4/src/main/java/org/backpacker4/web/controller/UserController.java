@@ -14,25 +14,41 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.backpacker4.bean.Feedback;
 import org.backpacker4.bean.FeedbackPhoto;
+import org.backpacker4.bean.FileUpload;
+import org.backpacker4.bean.Photo;
 import org.backpacker4.bean.Position;
 import org.backpacker4.bean.Typeinfo;
 import org.backpacker4.business.service.AppuserService;
@@ -259,6 +275,64 @@ public class UserController extends AbstractController {
 				return "user/places";
 			}
 			
+			 
+		    @RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
+		    public String saveNewFeedback(
+		            @ModelAttribute("uploadForm") FileUpload uploadForm,
+		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
+		        String saveDirectory = servletContext.getRealPath("/");
+		        System.out.println("Files will be saved at:" + saveDirectory);
+		        
+		        //Get parameters from request
+		        String typeinfo = httpServletRequest.getParameter("typeinfo");
+		        Long typeinfoid = getTypeinfoId(typeinfo);
+		        String comment = httpServletRequest.getParameter("comment");
+		        
+		        System.out.println("typeinfo = " + typeinfo);
+		        System.out.println("comment= " + comment);
+		        
+		      //Save the position
+				Position positionCreated = savePosition(httpServletRequest);
+				System.out.println("Postion:" + positionCreated.toString());
+				
+				//Get the date of today
+				Calendar cal = Calendar.getInstance();
+				Date today = cal.getTime();
+				
+				//Construct the feedback
+				Feedback f = new Feedback();
+				f.setId((long)0);
+				f.setComment(comment);
+				f.setIdTypeinfo(getTypeinfoId(typeinfo));
+				f.setIdPosition(positionCreated.getId());
+				f.setDatefeedback(today);
+				f.setIdUser(getCurrentUser().getId());
+				
+				//Save the feedback in DB
+				f = feedbackService.create(f);
+		 
+		        //Handle the files (images) to save
+				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+		 
+		        List<String> fileNames = new ArrayList<String>();
+		 
+		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+		            for (MultipartFile multipartFile : crunchifyFiles) {
+		            	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                String fileName = foto.getId() + "_FULL";
+		                if (!"".equalsIgnoreCase(fileName)) {
+		                    // Handle file content - multipartFile.getInputStream()
+		                    multipartFile
+		                            .transferTo(new File(saveDirectory + fileName));
+		                    fileNames.add(fileName);
+		                }
+		            }
+		        }
+		 
+		        map.addAttribute("files", fileNames);
+		        return "user/feedback1";
+		    }
+			
 			
 			@RequestMapping(value = "/feedback", method = RequestMethod.GET)
 			public ModelAndView userFeedbackPagina() {
@@ -267,6 +341,17 @@ public class UserController extends AbstractController {
 			  model.setViewName("user/feedback");
 			  addCurrentUser(model);
 			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&callback=initMap");
+			  model.addObject("asyncdefer"," async defer");
+			  return model;
+			}
+			
+			@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
+			public ModelAndView userFeedback1Pagina() {
+
+			  ModelAndView model = new ModelAndView();
+			  model.setViewName("user/feedback1");
+			  addCurrentUser(model);
+			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
 			  model.addObject("asyncdefer"," async defer");
 			  return model;
 			}
@@ -320,6 +405,48 @@ public class UserController extends AbstractController {
 			@Autowired
 		    private ServletContext servletContext;
 			
+			
+			private Photo constructPhoto(Position p, Appuser appuser, Feedback feedback){
+				Photo afbeelding = new Photo();
+				afbeelding.setId(Long.parseLong(String.valueOf(0)));
+				afbeelding.setComment("");
+				//dummy value for position
+				afbeelding.setIdPosition(p.getId());
+				afbeelding.setDescription(appuser.getUsername());
+				afbeelding.setThumbnail("");
+				afbeelding.setFullphoto("");
+				Calendar cal = Calendar.getInstance();
+				afbeelding.setDatetaken(cal.getTime());
+				System.out.println("afbeelding created ...");
+				
+				//Add photo to database
+				Photo afbeeldingSaved = photoService.create(afbeelding);
+				System.out.println("afbeelding saved ...");
+				
+				
+				afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+				afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+				
+				afbeeldingSaved = photoService.save(afbeeldingSaved);
+				
+				//Save in table Feedback_Photo
+				FeedbackPhoto fp = new FeedbackPhoto();
+				fp.setIdFeedback(feedback.getId());
+				fp.setIdPhoto(afbeeldingSaved.getId());
+				feedbackPhotoService.create(fp);
+				
+				return afbeeldingSaved;
+			}
+			
+			private long getTypeinfoId(String typeinfoname){
+				List<Typeinfo> list = typeinfoService.findAll();
+				for(Typeinfo i : list){
+					if (i.getDescription().equals(typeinfoname)){
+						return i.getId();
+					}
+				}
+			return 0;
+			}
 			
 			private Position getAppuserLastPos(Appuser appuser){
 				return positionService.findById(appuser.getIdPosition());
@@ -564,6 +691,13 @@ public class UserController extends AbstractController {
 			return new Appuser();
 			}
 			
+			private Appuser getCurrentUser(){
+				UserDetails userDetails =
+				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				return getAppuser(userDetails.getUsername());
+			}
+			
+			
 			//add the current user
 			private void addCurrentUser(ModelAndView model){	
 				UserDetails userDetails =
@@ -602,5 +736,25 @@ public class UserController extends AbstractController {
 					model.addAttribute("thumburl",url);
 				}
 			
-
+			private Position savePosition(HttpServletRequest httpServletRequest){
+				
+				String lat = httpServletRequest.getParameter("latitude");
+				String lon = httpServletRequest.getParameter("longitude");
+				String city = httpServletRequest.getParameter("city");
+				String country = httpServletRequest.getParameter("country");
+				System.out.println(city + "  " + country);
+				
+				BigDecimal bdlat = new BigDecimal(lat);
+				BigDecimal bdlon = new BigDecimal(lon);
+				
+				Position pos = new Position();
+				pos.setId((long) 0);
+				pos.setLatitude(bdlat);
+				pos.setLongitude(bdlon);
+				pos.setCountry(country);
+				pos.setCity(city);
+				
+				Position positionCreated = positionService.create(pos);
+				return positionCreated;
+			}
 }
