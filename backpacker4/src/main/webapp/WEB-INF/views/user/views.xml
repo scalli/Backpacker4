@@ -29,4 +29,7 @@
 	<definition extends="default" name="user/places">
 		<put-attribute name="body" value="/WEB-INF/views/user/user_places.jspx" />
 	</definition>
+	<definition extends="default" name="user/form">
+		<put-attribute name="body" value="/WEB-INF/views/user/user_form.jspx" />
+	</definition>
 </tiles-definitions>

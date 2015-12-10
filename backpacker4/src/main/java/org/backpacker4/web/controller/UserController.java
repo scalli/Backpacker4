@@ -3,8 +3,10 @@ package org.backpacker4.web.controller;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 
+import org.apache.commons.io.FileUtils;
 import org.backpacker4.bean.Appuser;
 import org.backpacker4.business.service.AppuserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,9 +29,13 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -37,6 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +52,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.backpacker4.bean.Feedback;
 import org.backpacker4.bean.FeedbackPhoto;
@@ -59,6 +68,11 @@ import org.backpacker4.business.service.PositionService;
 import org.backpacker4.business.service.TypeinfoService;
 import org.backpacker4.business.service.UserRolesService;
 import org.backpacker4.web.common.AbstractController;
+import org.backpacker4.web.common.FormMode;
+import org.backpacker4.web.common.Message;
+import org.backpacker4.web.common.MessageType;
+import org.backpacker4.web.listitem.PhotoListItem;
+import org.backpacker4.web.listitem.PositionListItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -106,6 +120,60 @@ public class UserController extends AbstractController {
 			}//end of constructor
 			
 			
+			/**
+			 * Populates the Spring MVC model with the given entity and eventually other useful data
+			 * @param model
+			 * @param appuser
+			 */
+			private void populateModel(Model model, Appuser appuser, FormMode formMode) {
+				//--- Main entity
+				model.addAttribute("appuser", appuser);
+				if ( formMode == FormMode.CREATE ) {
+					model.addAttribute(MODE, MODE_CREATE); // The form is in "create" mode
+					model.addAttribute(SAVE_ACTION, "/user/create"); 			
+					//--- Other data useful in this screen in "create" mode (all fields)
+					populateListOfPositionItems(model);
+					populateListOfPhotoItems(model);
+				}
+				else if ( formMode == FormMode.UPDATE ) {
+					model.addAttribute(MODE, MODE_UPDATE); // The form is in "update" mode
+					model.addAttribute(SAVE_ACTION, "/user/update"); 			
+					//--- Other data useful in this screen in "update" mode (only non-pk fields)
+					populateListOfPhotoItems(model);
+					populateListOfPositionItems(model);
+				}
+			}
+			
+			
+			//--------------------------------------------------------------------------------------
+			// Spring MVC model management
+			//--------------------------------------------------------------------------------------
+			/**
+			 * Populates the combo-box "items" for the referenced entity "Position"
+			 * @param model
+			 */
+			private void populateListOfPositionItems(Model model) {
+				List<Position> list = positionService.findAll();
+				List<PositionListItem> items = new LinkedList<PositionListItem>();
+				for ( Position position : list ) {
+					items.add(new PositionListItem( position ) );
+				}
+				model.addAttribute("listOfPositionItems", items ) ;
+			}
+
+			/**
+			 * Populates the combo-box "items" for the referenced entity "Photo"
+			 * @param model
+			 */
+			private void populateListOfPhotoItems(Model model) {
+				List<Photo> list = photoService.findAll();
+				List<PhotoListItem> items = new LinkedList<PhotoListItem>();
+				for ( Photo photo : list ) {
+					items.add(new PhotoListItem( photo ) );
+				}
+				model.addAttribute("listOfPhotoItems", items ) ;
+			}
+			
 			//--------------------------------------------------------------------------------------
 			// Request mapping
 			//--------------------------------------------------------------------------------------
@@ -121,6 +189,133 @@ public class UserController extends AbstractController {
 				addCurrentUser(model);
 				
 				return "user/search/form";
+			}
+			
+			/**
+			 * Shows a form page in order to update an existing Appuser
+			 * @param model Spring MVC model
+			 * @param id  primary key element
+			 * @return
+			 */
+			@RequestMapping(value = "/form")
+			public String formForUpdate(Model model) {
+				log("Action 'formForUpdate'");
+				//--- Search current user and store it in the model 
+				Appuser appuser = getCurrentUser();
+				populateModel( model, appuser, FormMode.UPDATE);
+				model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
+//				addCurrentUser(model);
+				return "user/form";
+			}
+			
+			
+			/**
+			 * 'UPDATE' action processing. <br>
+			 * This action is based on the 'Post/Redirect/Get (PRG)' pattern, so it ends by 'http redirect'<br>
+			 * @param appuser  entity to be updated
+			 * @param bindingResult Spring MVC binding result
+			 * @param model Spring MVC model
+			 * @param redirectAttributes Spring MVC redirect attributes
+			 * @param httpServletRequest
+			 * @return
+			 */
+			@RequestMapping(value = "/update" ) // GET or POST
+			public String update(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest
+					, @RequestParam(value = "image", required = false) MultipartFile image
+					) {
+				log("Action 'update'");
+				try {
+					if (!bindingResult.hasErrors()) {
+									
+						//Update the user
+						Long pid = appuserService.findById(appuser.getId()).getIdPosition();
+						appuser.setIdPosition(pid);
+						
+						Long fid = appuserService.findById(appuser.getId()).getIdPhoto();
+						appuser.setIdPhoto(fid);
+
+						Appuser appuserCreated = appuserService.update(appuser); 
+						
+						//Save the position
+						Position positionCreated = updatePosition(httpServletRequest, appuserCreated);
+						
+						//Add the image to Database column photo
+						if (!image.isEmpty()) {
+							try {
+//									validateImage(image);
+									System.out.println("image validation (jpg) succeeded...");
+							} catch (RuntimeException re) {
+							bindingResult.reject(re.getMessage());
+							return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+							}
+							 
+							try {
+								Photo afbeelding;
+								afbeelding = new Photo();
+								afbeelding.setId(Long.parseLong(String.valueOf(0)));
+								afbeelding.setComment("");
+								//dummy value for position
+								afbeelding.setIdPosition(Long.parseLong(String.valueOf(1)));
+								afbeelding.setDescription(appuserCreated.getUsername());
+								afbeelding.setThumbnail("");
+								afbeelding.setFullphoto("");
+								Calendar cal = Calendar.getInstance();
+								afbeelding.setDatetaken(cal.getTime());
+								System.out.println("afbeelding created ...");
+								
+								//Add photo to database
+								Photo afbeeldingSaved = photoService.create(afbeelding);
+								System.out.println("afbeelding saved ...");
+								
+								
+								afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+								afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+												
+								
+								//Save full image and thumbnail on server
+								saveImage( image, afbeeldingSaved);
+								
+//							    //Add the saved photoID to the appuser
+							    appuserCreated.setIdPhoto(afbeeldingSaved.getId());
+							    appuserCreated.setIdPosition(positionCreated.getId());
+							    appuserService.update(appuserCreated);
+							    System.out.println("User completly saved in DB!");
+								
+							} catch (IOException e) {
+							bindingResult.reject(e.getMessage());
+							return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+							}
+							}
+						else{
+							System.out.println("image is empty, no photo upload...");
+						}
+						
+						model.addAttribute("appuser", appuserCreated);
+						
+						//---
+						messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
+						return redirectToForm1(httpServletRequest, appuser.getId());
+						
+//						//--- Perform database operations
+//						Appuser appuserSaved = appuserService.update(appuser);
+//						model.addAttribute(MAIN_ENTITY_NAME, appuserSaved);
+//						//--- Set the result message
+//						messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
+//						log("Action 'update' : update done - redirect");
+//						return redirectToForm1(httpServletRequest, appuser.getId());
+					} else {
+						log("Action 'update' : binding errors");
+						populateModel( model, appuser, FormMode.UPDATE);
+//						return redirectToForm1(httpServletRequest, appuser.getId());
+						return "user/form";
+					}
+				} catch(Exception e) {
+					messageHelper.addException(model, "appuser.error.update", e);
+					log("Action 'update' : Exception - " + e.getMessage() );
+					populateModel( model, appuser, FormMode.UPDATE);
+//					return redirectToForm1(httpServletRequest, appuser.getId());
+					return "user/form";
+				}
 			}
 			
 			/**
@@ -858,4 +1053,88 @@ public class UserController extends AbstractController {
 				Position positionUpdated = positionService.save(pos);
 				return positionUpdated;
 			}
+			
+			private Position updatePosition(HttpServletRequest httpServletRequest, Appuser appuser){
+				
+				String lat = httpServletRequest.getParameter("latitude");
+				String lon = httpServletRequest.getParameter("longitude");
+				String city = httpServletRequest.getParameter("city");
+				String country = httpServletRequest.getParameter("country");
+				
+				BigDecimal bdlat = new BigDecimal(lat);
+				BigDecimal bdlon = new BigDecimal(lon);
+				
+				Position pos = positionService.findById((appuser.getIdPosition()));
+				pos.setLatitude(bdlat);
+				pos.setLongitude(bdlon);
+				pos.setCountry(country);
+				pos.setCity(city);
+				
+				System.out.println(city + "  " + country);
+				
+				Position positionUpdated = positionService.update(pos);
+				return positionUpdated;
+			}
+			
+			private void saveImage(MultipartFile image, Photo afbeelding)
+					throws RuntimeException, IOException {
+					try {
+					File file = new File(servletContext.getRealPath("/") + "/"
+					+ afbeelding.getFullphoto() + ".jpg");
+					 
+					//Save the full photo
+					FileUtils.writeByteArrayToFile(file, image.getBytes());
+					System.out.println("Go to the location:  " + file.toString()
+					+ " on your computer and verify that the image has been stored.");
+					
+					//Convert the full image to thumbnail
+					byte [] byteArr=image.getBytes();
+					// convert byte array to BufferedImage
+					InputStream in = new ByteArrayInputStream(byteArr);
+					BufferedImage buffimg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+					buffimg = ImageIO.read(in);
+					Image img = buffimg;
+					
+					BufferedImage thumbCreated = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+					thumbCreated.createGraphics().drawImage(img.getScaledInstance(100, 100, Image.SCALE_SMOOTH),0,0,null);
+
+					//Save the bufferedimage
+					File outputfile = new File(servletContext.getRealPath("/") + "/"
+							+ afbeelding.getThumbnail() + ".jpg");
+				    ImageIO.write(thumbCreated, "jpg", outputfile);
+				    
+				    photoService.save(afbeelding);
+
+					} catch (IOException e) {
+					throw e;
+					}
+					}
+			
+			private void validateImage(MultipartFile image) {
+				if (!image.getContentType().equals("image/jpg")) {
+				throw new RuntimeException("Only JPG images are accepted");
+				}
+				}
+			
+			/**
+			 * Returns "redirect:/entityName/form/id1/id2/..." 
+			 * @param httpServletRequest
+			 * @param idParts
+			 * @return
+			 */
+			private String redirectToForm1(HttpServletRequest httpServletRequest, Object... idParts) {
+				return "redirect:" + getFormURL1(httpServletRequest, idParts);
+			}
+			
+			/**
+			 * Returns "/entityName/form/id1/id2/..." 
+			 * @param httpServletRequest
+			 * @param idParts
+			 * @return
+			 */
+			private String getFormURL1(HttpServletRequest httpServletRequest, Object... idParts) {
+				return "/" + "user" + "/form/";
+//				return "/" + "user" + "/form/" + encodeUrlPathSegments(httpServletRequest, idParts );
+			}
+			
 }

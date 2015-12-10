@@ -238,8 +238,10 @@ public class UserRegistrationController extends AbstractController {
 				//Save the position
 				Position positionCreated = savePosition(httpServletRequest);
 				
-				//Create the user
+				//Create the user and update his position
 				Appuser appuserCreated = appuserService.create(appuser); 
+				appuserCreated.setIdPosition(positionCreated.getId());
+			    appuserService.update(appuserCreated);
 				
 				//Give the created user the ROLE_USER role
 				UserRoles userroles = new UserRoles();
@@ -288,7 +290,6 @@ public class UserRegistrationController extends AbstractController {
 						
 //					    //Add the saved photoID to the appuser
 					    appuserCreated.setIdPhoto(afbeeldingSaved.getId());
-					    appuserCreated.setIdPosition(positionCreated.getId());
 					    appuserService.update(appuserCreated);
 					    System.out.println("User completly saved in DB!");
 						
@@ -302,7 +303,8 @@ public class UserRegistrationController extends AbstractController {
 				
 				//---
 				messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
-				return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+				return "register/succes";
+//				return redirectToForm1(httpServletRequest, appuserCreated.getId() );
 			} else {
 				populateModel( model, appuser, FormMode.CREATE);
 				System.out.println("Not all valid fields");

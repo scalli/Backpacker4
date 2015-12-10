@@ -29,7 +29,7 @@
                 <li><a href="/backpacker4/user/search/form">Search</a></li>
                 <li><a href="/backpacker4/user/places">Where are we?</a></li>
                 <li class="active"><a href="/backpacker4/user/list">Who are we?</a></li>
-                <li><a href="/backpacker4/register/form/${appuser.id}">Profile</a></li>
+                <li><a href="/backpacker4/user/form">Profile</a></li>
             </ul>
         </div>
     </nav>
