@@ -38,6 +38,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -475,14 +478,60 @@ public class UserController extends AbstractController {
 		    public String saveNewFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
-		       
+		       		    	
+		    	List<Typeinfo> typeinfolist = typeinfoService.findAll();
+				map.addAttribute("typeinfolist", typeinfolist);
+		    	
 		    	String saveDirectory = servletContext.getRealPath("/");
 		        System.out.println("Files will be saved at:" + saveDirectory);
 		        
 		        //Get parameters from request
+		        String pac_input = httpServletRequest.getParameter("pac-input");
 		        String typeinfo = httpServletRequest.getParameter("typeinfo");
 		        Long typeinfoid = getTypeinfoId(typeinfo);
 		        String comment = httpServletRequest.getParameter("comment");
+		    	String country = httpServletRequest.getParameter("country");
+	    		System.out.println("country: -" + country + "-");
+	    		System.out.println("comment: -" + comment + "-");
+	    		System.out.println("typeinfo: -" + typeinfo + "-");
+	    		System.out.println("typeinfoid: -" + typeinfoid + "-");
+		    	
+		    	
+	    		String faultmessage="";
+		    	if(country.equals("country")){
+		    		faultmessage += "You have chosen an non existing location. Please choose a valid location. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("pac_input", "");
+		    	}
+		    	else{
+		    		map.addAttribute("pac_input", pac_input);
+		    	}
+		    	if(comment.length() == 0){
+		    		faultmessage += "Your tried to add an empty comment. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("comment","");
+		    	}
+		    	else{
+		    		map.addAttribute("comment",comment);
+		    	}
+		    	
+		    	
+		    	//A non valid input has been given
+		    	if(!(faultmessage.equals(""))){
+		    		map.addAttribute("message", faultmessage);
+//		    		addCorretInputToMap(pac_input, typeinfoid, comment, uploadForm, map);
+		    		System.out.println(faultmessage);
+		    		
+		    		//Add the valid input to the return page
+		    		map.addAttribute("typeinfoid", typeinfoid.toString());
+					
+					//Save the images to tempory directory
+					List<String> filenames = saveTempImages(uploadForm);
+					map.addAttribute("filenames", filenames);
+
+		    		return "user/feedback1";
+		    	}
+		    		
 		        
 		        System.out.println("typeinfo = " + typeinfo);
 		        System.out.println("comment= " + comment);
@@ -527,8 +576,12 @@ public class UserController extends AbstractController {
 		                }
 		            }
 		        }
+		        
+		        //Save the images from the temporary folder
+		        saveTempImagesFinal(positionCreated,f);
 		 
 		        map.addAttribute("files", fileNames);
+		        map.addAttribute("succesmessage","Your feedback has been saved. <br /> Thank you for sharing your feedback. <br />");
 		        return "user/feedback1";
 		    }
 		    
@@ -608,6 +661,8 @@ public class UserController extends AbstractController {
 			  ModelAndView model = new ModelAndView();
 			  model.setViewName("user/feedback1");
 			  addCurrentUser(model);
+			  List<Typeinfo> typeinfolist = typeinfoService.findAll();
+			  model.addObject("typeinfolist", typeinfolist);
 			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
 			  model.addObject("asyncdefer"," async defer");
 			  return model;
@@ -881,7 +936,7 @@ public class UserController extends AbstractController {
 				else {
 					selectedTypeinfos = typeinfos;
 				}
-				
+				System.out.println("selectedTypeinfos: " + selectedTypeinfos);
 				//get all positions in DB
 				List<Position> positions = new ArrayList<Position>();
 				positions = positionService.findAll();
@@ -899,6 +954,7 @@ public class UserController extends AbstractController {
 				else {
 					selectedPositionsCountry = positions;
 				}
+				System.out.println("selectedPositionsCountry: " + selectedPositionsCountry);
 				
 				//List will contain the positions of the selected country and city
 				List<Position> selectedPositionsCountryCity = new ArrayList<Position>();
@@ -913,6 +969,7 @@ public class UserController extends AbstractController {
 				else {
 					selectedPositionsCountryCity = selectedPositionsCountry;
 				}
+				System.out.println("selectedPositionsCountryCity: " + selectedPositionsCountryCity);
 				
 						
 				//get all feedbacks in DB
@@ -923,11 +980,14 @@ public class UserController extends AbstractController {
 				List<Feedback> selectedFeedbacksPosition = new ArrayList<Feedback>();
 				
 				for(Feedback f : feedbacks){
+					System.out.println("Feedback ID position: " + f.getIdPosition());
 					for(Position p : selectedPositionsCountryCity){
-						if(f.getIdPosition() == p.getId())
+						System.out.println("Position id: " + p.getId());
+						if(f.getIdPosition().equals(p.getId()))
 							selectedFeedbacksPosition.add(f);
 					}
 				}
+				System.out.println("selectedFeedbacksPosition: " + selectedFeedbacksPosition);
 				
 				//Will contain the final list with all feedbacks that answer the criteria
 				List<Feedback> selectedFeedbacksFinal = new ArrayList<Feedback>();
@@ -938,6 +998,7 @@ public class UserController extends AbstractController {
 						}
 					}
 				}
+				System.out.println("selectedFeedbacksFinal: " + selectedFeedbacksFinal);
 				
 				return selectedFeedbacksFinal;
 				
@@ -1137,4 +1198,123 @@ public class UserController extends AbstractController {
 //				return "/" + "user" + "/form/" + encodeUrlPathSegments(httpServletRequest, idParts );
 			}
 			
-}
+			private List<String> saveTempImages(FileUpload uploadForm ) throws IllegalStateException, IOException{
+				
+				String saveDirectory = servletContext.getRealPath("/");
+				saveDirectory += "TempImages\\";
+		        System.out.println("Files will be saved at:" + saveDirectory);
+		        
+		        //create folder
+//		        makeDirectory(saveDirectory);
+				
+		        
+		        //Handle the files (images) to save
+				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+		 
+		        List<String> fileNames = new ArrayList<String>();
+		 
+		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+		        	int i = 0;
+		            for (MultipartFile multipartFile : crunchifyFiles) {
+		            	
+		            	
+		                System.out.println(multipartFile.getContentType());
+		                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+//		                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                	String fileName = "temp" + i  + ".jpg";
+		                	System.out.println(saveDirectory + fileName);
+		                	// Handle file content - multipartFile.getInputStream()
+		                	multipartFile
+		                            .transferTo(new File(saveDirectory + fileName));
+		                    fileNames.add(fileName);
+		                    i++;
+		                }
+		            }
+		        }
+		        return fileNames;
+			}
+			
+			private void addCorretInputToMap(String pac_input, Long typeinfoid, 
+					String comment, FileUpload uploadForm, Model map) throws IllegalStateException, IOException{
+				map.addAttribute("pac_input", pac_input);
+				map.addAttribute("typeinfoid", typeinfoid);
+				map.addAttribute("comment",comment);
+				
+				//Save the images to tempory directory
+				List<String> filenames = saveTempImages(uploadForm);
+				map.addAttribute("filenames", filenames);
+				
+			}
+			
+			//Overwrite an existing directory, i.e. delete if exists and create new version
+			private boolean makeDirectory(String path){
+			    if (Files.exists(Paths.get(path))) {
+			        try {
+			            FileUtils.deleteDirectory(new File(path));
+			        }
+			        catch (IOException ex) {
+			            System.err.println("Failed to create directory!");
+			            return false;
+			        }
+			    }    
+			    if (new File(path).mkdir()) {
+			        return true;
+			    }
+			    return false;
+			}
+			
+			private void saveTempImagesFinal(Position positionCreated, Feedback feedback) throws IOException{
+				
+				renameAllTempFiles(positionCreated,feedback);
+				
+				String saveDirectory = servletContext.getRealPath("/");
+				System.out.println("Directory to copy to:" + saveDirectory);
+				String saveDirectoryTemp = saveDirectory += "TempImages\\";
+				System.out.println("Directory to copy from:" + saveDirectoryTemp);
+				
+				File tempdir = new File(saveDirectoryTemp);
+				File savedir = new File(saveDirectory);
+								
+				System.out.println("List of temp files: " + tempdir.listFiles().toString());
+				
+				if (tempdir.isDirectory()) {
+				    for (File f : tempdir.listFiles()) {
+				    	
+				    	System.out.println("copying file");
+				    	
+						FileUtils.moveFileToDirectory(f, savedir, false);
+
+				    	System.out.println("File copied:" + f.getName() + " to " + savedir.getPath());
+				    }
+				}
+			}
+			
+			private void renameAllTempFiles(Position positionCreated, Feedback feedback){
+				
+				String saveDirectory = servletContext.getRealPath("/");
+				String saveDirectoryTemp = saveDirectory += "TempImages\\";
+				
+				File tempdir = new File(saveDirectoryTemp);
+				File savedir = new File(saveDirectory);
+
+				if (tempdir.isDirectory()) { // make sure it's a directory
+				    for (final File f : tempdir.listFiles()) {
+				        try {
+				        	Photo foto = constructPhoto(positionCreated,getCurrentUser(),feedback);
+			            	String fileName = foto.getId() + "_FULL.jpg";
+				            
+			            	File newfile =new File(fileName);
+
+				            if(f.renameTo(newfile)){
+				                System.out.println("Rename succesful");
+				            }else{
+				                System.out.println("Rename failed");
+				            }
+				        } catch (Exception e) {
+				            // TODO: handle exception
+				            e.printStackTrace();
+				        }
+				    }
+				}
+			}
+}//end of class

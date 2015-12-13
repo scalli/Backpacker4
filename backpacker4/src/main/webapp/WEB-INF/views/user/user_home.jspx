@@ -200,7 +200,7 @@ function getCity1 (lat,lng,country,appuserid,latlng, geocoder) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//        alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {
@@ -217,11 +217,11 @@ function getCity1 (lat,lng,country,appuserid,latlng, geocoder) {
         //city data
 //         alert("city: " + city.short_name + " " + city.long_name + " country: " + country.short_name + " " + country.long_name);
         } else {
-          alert("No results found");
+//           alert("No results found");
           return null;
         }
       } else {
-        alert("Geocoder failed due to: " + status);
+//         alert("Geocoder failed due to: " + status);
         return null;
       }
     });
@@ -240,7 +240,7 @@ function getCountry1(lat,lng,appuserid,latlng, geocoder) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//          alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {
@@ -273,7 +273,7 @@ function getCountry1(lat,lng,appuserid,latlng, geocoder) {
 	function doAjaxPost(lng,lat,country,city,appuserid) {
 
 	var params = "longitude="+lng + "&latitude=" + lat + "&country=" + country + "&city=" + city + "&appuserid=" + appuserid;
-	alert("params: " + params);
+// 	alert("params: " + params);
 	
 	$.ajax({
         type: "GET",
@@ -281,14 +281,16 @@ function getCountry1(lat,lng,appuserid,latlng, geocoder) {
         data: params,
         success: function(response){
         // we have the response
-        alert("response:" + response);
+//         alert("response:" + response);
         if (response == false) {
-               alert("failed");
+//                alert("failed");
            }
-        else {alert("succes")}
+        else {
+//         	alert("succes")
+        	}
 			 },
 		error: function(e){
-		alert('Error: ' + e);
+// 		alert('Error: ' + e);
         }
 			});
 	

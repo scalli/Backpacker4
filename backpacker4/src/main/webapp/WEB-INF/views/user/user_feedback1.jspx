@@ -46,11 +46,27 @@
       <p>link 4</p>
     </div>
     <div class="col-sm-9">
+      <div class="row">
+		<c:if test="${not empty succesmessage}">
+		    <div class="alert alert-success" role="alert">
+			  	${succesmessage}
+			  </div>
+		</c:if>
+		<c:if test="${not empty message}">
+			<c:set var="pac_input" scope="session" value="${pac_input}"/>
+			<c:set var="comment" scope="session" value="${comment}"/>
+			<c:set var="typeinfoid" scope="session" value="${typeinfoid}"/>
+			<c:set var="filenames" scope="session" value="${filenames}"/>
+		    <div class="alert alert-danger" role="alert">
+			  	${message}
+			</div>
+		</c:if>
+	  </div>
     <form:form method="POST" action="/backpacker4/user/feedback1/savefiles?${_csrf.parameterName}=${_csrf.token}"
             modelAttribute="uploadForm" enctype="multipart/form-data">
     <div class="row">
     <div class="container, col-sm-12">
-    <input id="pac-input" class="controls" type="text" onchange="getPosition()" placeholder="Enter a location" required="required"/>
+    <input id="pac-input" name="pac-input" value="${pac_input}" class="controls" type="text" onchange="getPosition()" placeholder="Enter a location" required="required"/>
 		    <div id="type-selector" class="controls">
 		      <input type="radio" name="type" id="changetype-all" checked="checked" />
 		      <label for="changetype-all">All</label>
@@ -81,25 +97,27 @@
 					</div>
 				</div>
 	</div>
-<div class="row">
+	<div class="row">
 		<div class="form-group">
 		  <label for="typeinfo">Select list:</label>
 		  <select class="form-control" id="typeinfo" name="typeinfo">
-		    <option>Restaurant</option>
-		    <option>Café/Bar</option>
-		    <option>Hotel</option>
-		    <option>Bakery</option>
-		    <option>Local customs</option>
-		    <option>Transport</option>
-		    <option>Historical centre</option>
-		    <option>Nature reserves</option>
-		    <option>Other</option>
+		  	<c:forEach items="${typeinfolist}" var="item" varStatus="loop">
+		  		<c:choose>
+				    <c:when test="${item.id eq typeinfoid}">
+				   		<option selected="selected">${item.description}</option>
+				    </c:when>
+				    <c:otherwise>
+				       <option>${item.description}</option>
+				    </c:otherwise>
+				</c:choose>
+			</c:forEach>
 		  </select>
 		</div>
 		</div>
+		
 		<div class="row">
 			  <label for="comment">Comment:</label>
-			  <textarea class="form-control" rows="5" required="required" name="comment" id="comment">t</textarea>
+			  <textarea class="form-control" rows="5"  name="comment" id="comment">${comment}</textarea>
 		</div>
 		<div class="row">
 		<div class="container">
@@ -120,6 +138,11 @@
             <input id="addFile" type="button" value="Add File" />
 					</div>
 		</div>
+		<c:forEach items="${filenames}" var="item" varStatus="loop">
+            <div class="thumbnail, col-sm-1" heigth="150">
+				<img src="${pageContext.request.contextPath}/TempImages/${item}" width="100%" alt="no picture available"/>
+			</div>
+         </c:forEach>
 		</div>
 		<!-- ACTION BUTTONS -->
 				<div class="form-group">
