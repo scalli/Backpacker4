@@ -580,8 +580,11 @@ public class UserController extends AbstractController {
 		        //Save the images from the temporary folder
 		        saveTempImagesFinal(positionCreated,f);
 		 
-		        map.addAttribute("files", fileNames);
-		        map.addAttribute("succesmessage","Your feedback has been saved. <br /> Thank you for sharing your feedback. <br />");
+		        map.addAttribute("files", new ArrayList<String>());
+		        map.addAttribute("comment","");
+		        map.addAttribute("pac_input","");
+		        map.addAttribute("typeinfoid","");
+		        map.addAttribute("succesmessage","Your feedback has been saved. <br /> Thank you for sharing your feedback. <br /> You can enter more feedback if you like.");
 		        return "user/feedback1";
 		    }
 		    
@@ -1280,9 +1283,9 @@ public class UserController extends AbstractController {
 				if (tempdir.isDirectory()) {
 				    for (File f : tempdir.listFiles()) {
 				    	
-				    	System.out.println("copying file");
+				    	System.out.println("moving file: " + f.getName() + " to " + savedir.getPath());
 				    	
-						FileUtils.moveFileToDirectory(f, savedir, false);
+						FileUtils.moveToDirectory(f, new File( servletContext.getRealPath("/")), false);
 
 				    	System.out.println("File copied:" + f.getName() + " to " + savedir.getPath());
 				    }
@@ -1299,21 +1302,23 @@ public class UserController extends AbstractController {
 
 				if (tempdir.isDirectory()) { // make sure it's a directory
 				    for (final File f : tempdir.listFiles()) {
-				        try {
-				        	Photo foto = constructPhoto(positionCreated,getCurrentUser(),feedback);
-			            	String fileName = foto.getId() + "_FULL.jpg";
-				            
-			            	File newfile =new File(fileName);
+				        if (f.getName().startsWith("temp")) {
+							try {
+								Photo foto = constructPhoto(positionCreated, getCurrentUser(), feedback);
+								String fileName = foto.getId() + "_FULL.jpg";
 
-				            if(f.renameTo(newfile)){
-				                System.out.println("Rename succesful");
-				            }else{
-				                System.out.println("Rename failed");
-				            }
-				        } catch (Exception e) {
-				            // TODO: handle exception
-				            e.printStackTrace();
-				        }
+								File newfile = new File(saveDirectoryTemp + fileName);
+
+								if (f.renameTo(newfile)) {
+									System.out.println("Rename succesful");
+								} else {
+									System.out.println("Rename failed");
+								}
+							} catch (Exception e) {
+								// TODO: handle exception
+								e.printStackTrace();
+							} 
+						}
 				    }
 				}
 			}

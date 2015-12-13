@@ -53,10 +53,10 @@
 			  </div>
 		</c:if>
 		<c:if test="${not empty message}">
-			<c:set var="pac_input" scope="session" value="${pac_input}"/>
-			<c:set var="comment" scope="session" value="${comment}"/>
-			<c:set var="typeinfoid" scope="session" value="${typeinfoid}"/>
-			<c:set var="filenames" scope="session" value="${filenames}"/>
+			<c:set var="pac_input" scope="page" value="${pac_input}"/>
+			<c:set var="comment" scope="page" value="${comment}"/>
+			<c:set var="typeinfoid" scope="page" value="${typeinfoid}"/>
+			<c:set var="filenames" scope="page" value="${filenames}"/>
 		    <div class="alert alert-danger" role="alert">
 			  	${message}
 			</div>
@@ -86,14 +86,14 @@
 <div class="row">
 <div class="container">
 					<div class="form-group">
-						<label for="latitude">latitude:</label>
-						<input type="text" name="latitude" id="latitude" value="latitude" /> 
-						<label for="longitude">longitude:</label>
-						<input type="text" name="longitude" id="longitude" value="longitude" /> 
-						<label for="country">country:</label>
-						<input type="text" name="country" id="country" value="country" /> 
-						<label for="city">city:</label>
-						<input type="text" name="city" id="city" value="city" /> 
+<!-- 						<label for="latitude">latitude:</label> -->
+						<input type="hidden" name="latitude" id="latitude" value="latitude" /> 
+<!-- 						<label for="longitude">longitude:</label> -->
+						<input type="hidden" name="longitude" id="longitude" value="longitude" /> 
+<!-- 						<label for="country">country:</label> -->
+						<input type="hidden" name="country" id="country" value="country" /> 
+<!-- 						<label for="city">city:</label> -->
+						<input type="hidden" name="city" id="city" value="city" /> 
 					</div>
 				</div>
 	</div>
@@ -167,8 +167,8 @@ var map;
 function initMap() {
   //GLOBAL VARIABLE MAP for access everywhere
   map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: -33.8688, lng: 151.2195},
-    zoom: 13
+    center: {lat: 51, lng: 4},
+    zoom: 1
   });
   var input = (document.getElementById('pac-input'));
 
