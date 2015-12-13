@@ -328,23 +328,18 @@ document.getElementById('image').addEventListener('change', function(){
 ]]>
 </script>
 <script>
-    $(document)
-            .ready(
-                    function() {
-                        //add more file components if Add is clicked
-                        $('#addFile')
-                                .click(
-                                        function() {
-                                            var fileIndex = $('#fileTable tr')
-                                                    .children().length - 1;
-                                            $('#fileTable')
-                                                    .append(
-                                                            '<tr><td>'
-                                                                    + '   <input type="file" name="files['+ fileIndex +']" />'
-                                                                    + '</td></tr>');
-                                        });
- 
-                    });
+<![CDATA[
+    $(document).ready( function() {
+       //add more file components if Add is clicked
+       $('#addFile').click(
+         function() {
+             var fileIndex = $('#fileTable tr').children().length;
+//              alert(fileIndex);
+             $('#fileTable').append("<tr><td><input type=\"file\" name=\"files[" + fileIndex + "]\" /></td></tr>");
+         });
+
+   });
+ ]]>
 </script>
 
 </div>

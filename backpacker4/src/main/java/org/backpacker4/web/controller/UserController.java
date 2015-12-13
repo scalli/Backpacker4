@@ -592,37 +592,86 @@ public class UserController extends AbstractController {
 		    public String updateFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
-		        String saveDirectory = servletContext.getRealPath("/");
+		    	List<Typeinfo> typeinfolist = typeinfoService.findAll();
+				map.addAttribute("typeinfolist", typeinfolist);
+		    	
+		    	String saveDirectory = servletContext.getRealPath("/");
 		        System.out.println("Files will be saved at:" + saveDirectory);
 		        
 		        //Get parameters from request
+		        String feedbackid = httpServletRequest.getParameter("feedbackid");
+		        Long fid = Long.parseLong(feedbackid);
+		        String pac_input = httpServletRequest.getParameter("pac-input");
 		        String typeinfo = httpServletRequest.getParameter("typeinfo");
 		        Long typeinfoid = getTypeinfoId(typeinfo);
 		        String comment = httpServletRequest.getParameter("comment");
-		        String feedbackString = httpServletRequest.getParameter("feedbackid");
-		        Feedback f = feedbackService.findById(Long.parseLong(feedbackString));
+		    	String country = httpServletRequest.getParameter("country");
+	    		System.out.println("country: -" + country + "-");
+	    		System.out.println("comment: -" + comment + "-");
+	    		System.out.println("typeinfo: -" + typeinfo + "-");
+	    		System.out.println("typeinfoid: -" + typeinfoid + "-");
+	    		System.out.println("feedbackid: -" + fid + "-");
+		    	
+		    	
+	    		String faultmessage="";
+		    	if(country.equals("country")){
+		    		faultmessage += "You have chosen an non existing location. Please choose a valid location. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("pac_input", "");
+		    	}
+		    	else{
+		    		map.addAttribute("pac_input", pac_input);
+		    	}
+		    	if(comment.length() == 0){
+		    		faultmessage += "Your tried to add an empty comment. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("comment","");
+		    	}
+		    	else{
+		    		map.addAttribute("comment",comment);
+		    	}
+		    	
+		    	
+		    	//A non valid input has been given
+		    	if(!(faultmessage.equals(""))){
+		    		map.addAttribute("message", faultmessage);
+//		    		addCorretInputToMap(pac_input, typeinfoid, comment, uploadForm, map);
+		    		System.out.println(faultmessage);
+		    		
+		    		//Add the valid input to the return page
+		    		map.addAttribute("typeinfoid", typeinfoid.toString());
+					
+					//Save the images to tempory directory
+					List<String> filenames = saveTempImages(uploadForm);
+					map.addAttribute("filenames", filenames);
+
+		    		return "user/feedback1/update";
+		    	}
+		    		
 		        
 		        System.out.println("typeinfo = " + typeinfo);
 		        System.out.println("comment= " + comment);
 		        
 		      //Save the position
-				Position position = positionService.findById(f.getIdPosition());
-				position = updatePosition(httpServletRequest,position);
-				System.out.println("Postion:" + position.toString());
+				Position pos = positionService.findById((feedbackService.findById(fid).getIdPosition()));
+		        Position positionCreated = updatePosition(httpServletRequest, pos);
+				System.out.println("Postion:" + positionCreated.toString());
 				
 				//Get the date of today
 				Calendar cal = Calendar.getInstance();
 				Date today = cal.getTime();
 				
-				//Construct the feedback, not the id
+				//Construct the feedback
+				Feedback f = new Feedback();
+				f.setId(fid);
 				f.setComment(comment);
 				f.setIdTypeinfo(getTypeinfoId(typeinfo));
-				f.setIdPosition(position.getId());
+				f.setIdPosition(positionCreated.getId());
 				f.setDatefeedback(today);
 				f.setIdUser(getCurrentUser().getId());
 				
 				//Save the feedback in DB
-				f = feedbackService.save(f);
+				f = feedbackService.update(f);
 		 
 		        //Handle the files (images) to save
 				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
@@ -631,32 +680,31 @@ public class UserController extends AbstractController {
 		 
 		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
 		            for (MultipartFile multipartFile : crunchifyFiles) {
-		            	Photo foto = constructPhoto(position,getCurrentUser(),f);
-		                String fileName = foto.getId() + "_FULL.jpg";
-		                if (!"".equalsIgnoreCase(fileName)) {
-		                    // Handle file content - multipartFile.getInputStream()
-		                    multipartFile
+		            	
+		                System.out.println(multipartFile.getContentType());
+		                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+		                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                	String fileName = foto.getId() + "_FULL.jpg";
+		                	
+		                	// Handle file content - multipartFile.getInputStream()
+		                	multipartFile
 		                            .transferTo(new File(saveDirectory + fileName));
 		                    fileNames.add(fileName);
 		                }
 		            }
 		        }
+		        
+		        //Save the images from the temporary folder
+		        saveTempImagesFinal(positionCreated,f);
 		 
-		        map.addAttribute("files", fileNames);
-		        return "user/feedback1";
+		        map.addAttribute("files", new ArrayList<String>());
+		        map.addAttribute("comment","");
+		        map.addAttribute("pac_input","");
+		        map.addAttribute("typeinfoid","");
+		        map.addAttribute("succesmessage","Your feedback has been updated. <br /> Thank you for sharing your feedback. <br /> You can enter more feedback if you like.");
+		        return "user/feedback1/update";
 		    }
 			
-			
-			@RequestMapping(value = "/feedback", method = RequestMethod.GET)
-			public ModelAndView userFeedbackPagina() {
-
-			  ModelAndView model = new ModelAndView();
-			  model.setViewName("user/feedback");
-			  addCurrentUser(model);
-			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&callback=initMap");
-			  model.addObject("asyncdefer"," async defer");
-			  return model;
-			}
 			
 			@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
 			public ModelAndView userFeedback1Pagina() {
@@ -673,10 +721,18 @@ public class UserController extends AbstractController {
 			
 			@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
 			public ModelAndView userFeedback1UpdatePagina(HttpServletRequest httpServletRequest) {
-
+				
 			 long feedbackid = Long.parseLong(httpServletRequest.getParameter("feedbackid"));
 			 Feedback feedback = feedbackService.findById(feedbackid);
 			 Position position = positionService.findById(feedback.getIdPosition());
+			 List <FeedbackPhoto> feedbackphotolist = feedbackPhotoService.findAll();
+			 List <Photo> photolist = new ArrayList <Photo>();
+			 for(FeedbackPhoto fp : feedbackphotolist){
+				 if(fp.getIdFeedback().equals(feedback.getId())){
+					 photolist.add(photoService.findById(fp.getIdPhoto()));
+				 }
+			 }
+			 
 				
 			 ModelAndView model = new ModelAndView();
 			  model.setViewName("user/feedback1/update");
@@ -685,6 +741,15 @@ public class UserController extends AbstractController {
 			  model.addObject("asyncdefer"," async defer");
 			  model.addObject("feedback",feedback);
 			  model.addObject("position",position);
+			  
+			  List<Typeinfo> typeinfolist = typeinfoService.findAll();
+			  model.addObject("typeinfolist", typeinfolist);
+			  
+			  model.addObject("pac_input", position.getCity() + " " + position.getCountry());
+			  model.addObject("comment", feedback.getComment());
+			  model.addObject("typeinfoid",feedback.getIdTypeinfo());
+			  model.addObject("photolist",photolist);
+			  
 			  return model;
 			}
 			
@@ -729,6 +794,28 @@ public class UserController extends AbstractController {
 				
 				return "";
 
+			}
+			
+			/**
+			 * Deletes a photo with a given id (in request)
+			 * @param model Spring MVC model
+			 * @return
+			 */
+			@RequestMapping(value="/photo/delete", method= RequestMethod.GET)
+			public String deletePhoto(Model model, HttpServletRequest httpServletRequest,
+					RedirectAttributes redirectattributes){
+				
+				String photoid = httpServletRequest.getParameter("photoid");
+				String feedbackid = httpServletRequest.getParameter("feedbackid");
+				
+				Long pid = Long.parseLong(photoid);
+				Long fid = Long.parseLong(feedbackid);
+				
+				feedbackPhotoService.delete(fid, pid);
+				
+				redirectattributes.addAttribute("feedbackid",feedbackid);
+				
+				return "redirect:/user/feedback1/update";
 			}
 			
 			//--------------------------------------------------------------------------------------
