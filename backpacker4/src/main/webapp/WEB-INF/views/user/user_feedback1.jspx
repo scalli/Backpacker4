@@ -253,8 +253,8 @@ function initMap() {
    var lg = document.getElementById("longitude");
    var lt = document.getElementById("latitude");
 
-   lg.value = "" + lat; 
-   lt.value = "" + lng;
+   lg.value = "" + lng; 
+   lt.value = "" + lat;
    codeLatLng(lat, lng);
    }
    </script>

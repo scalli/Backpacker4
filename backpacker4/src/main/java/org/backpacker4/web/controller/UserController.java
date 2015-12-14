@@ -207,7 +207,7 @@ public class UserController extends AbstractController {
 				Appuser appuser = getCurrentUser();
 				populateModel( model, appuser, FormMode.UPDATE);
 				model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
-//				addCurrentUser(model);
+				addCurrentUser(model);
 				return "user/form";
 			}
 			

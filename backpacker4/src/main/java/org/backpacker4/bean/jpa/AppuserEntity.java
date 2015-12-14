@@ -80,7 +80,7 @@ public class AppuserEntity implements Serializable {
     @OneToMany(mappedBy="appuser", targetEntity=AlbumEntity.class)
     private List<AlbumEntity> listOfAlbum ;
 
-    @OneToMany(mappedBy="appuser", targetEntity=FeedbackEntity.class)
+    @OneToMany(mappedBy="appuser", targetEntity=FeedbackEntity.class, cascade=CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FeedbackEntity> listOfFeedback;
 
 

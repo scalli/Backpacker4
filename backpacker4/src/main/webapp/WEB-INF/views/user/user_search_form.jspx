@@ -165,7 +165,9 @@
 			           	<c:forEach var="photo_url" items="${feebackphotos[status.index]}" varStatus="photoloop">
 							        <div class="col-xs-4">
 							        <div class="mythumbnail">
+							        <p>
 							            <img src="${pageContext.request.contextPath}/${photo_url}" />
+							        </p>
 							        </div>
 							        </div> 
 						</c:forEach>

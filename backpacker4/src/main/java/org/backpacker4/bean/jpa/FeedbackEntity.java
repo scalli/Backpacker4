@@ -60,7 +60,7 @@ public class FeedbackEntity implements Serializable {
     //----------------------------------------------------------------------
     // ENTITY LINKS ( RELATIONSHIP )
     //----------------------------------------------------------------------
-    @ManyToOne
+    @ManyToOne 
     @JoinColumn(name="ID_USER", referencedColumnName="ID")
     private AppuserEntity appuser     ;
 
