@@ -1,18 +1,35 @@
 package org.backpacker4.web.controller;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
+import org.apache.commons.io.FileUtils;
 import org.backpacker4.bean.Appuser;
 import org.backpacker4.bean.Feedback;
 import org.backpacker4.bean.FeedbackPhoto;
+import org.backpacker4.bean.FileUpload;
+import org.backpacker4.bean.Photo;
 import org.backpacker4.bean.Position;
 import org.backpacker4.bean.Typeinfo;
 import org.backpacker4.business.service.AppuserService;
@@ -23,15 +40,25 @@ import org.backpacker4.business.service.PositionService;
 import org.backpacker4.business.service.TypeinfoService;
 import org.backpacker4.business.service.UserRolesService;
 import org.backpacker4.web.common.AbstractController;
+import org.backpacker4.web.common.FormMode;
+import org.backpacker4.web.common.Message;
+import org.backpacker4.web.common.MessageType;
+import org.backpacker4.web.listitem.PhotoListItem;
+import org.backpacker4.web.listitem.PositionListItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Spring MVC controller for 'Administrator' management.
@@ -75,6 +102,61 @@ public class AdminController extends AbstractController{
 		}//end of constructor
 		
 		
+		/**
+		 * Populates the Spring MVC model with the given entity and eventually other useful data
+		 * @param model
+		 * @param appuser
+		 */
+		private void populateModel(Model model, Appuser appuser, FormMode formMode) {
+			//--- Main entity
+			model.addAttribute("appuser", appuser);
+			if ( formMode == FormMode.CREATE ) {
+				model.addAttribute(MODE, MODE_CREATE); // The form is in "create" mode
+				model.addAttribute(SAVE_ACTION, "/admin/create"); 			
+				//--- Other data useful in this screen in "create" mode (all fields)
+				populateListOfPositionItems(model);
+				populateListOfPhotoItems(model);
+			}
+			else if ( formMode == FormMode.UPDATE ) {
+				model.addAttribute(MODE, MODE_UPDATE); // The form is in "update" mode
+				model.addAttribute(SAVE_ACTION, "/admin/update"); 			
+				//--- Other data useful in this screen in "update" mode (only non-pk fields)
+				populateListOfPhotoItems(model);
+				populateListOfPositionItems(model);
+			}
+		}
+		
+		
+		//--------------------------------------------------------------------------------------
+		// Spring MVC model management
+		//--------------------------------------------------------------------------------------
+		/**
+		 * Populates the combo-box "items" for the referenced entity "Position"
+		 * @param model
+		 */
+		private void populateListOfPositionItems(Model model) {
+			List<Position> list = positionService.findAll();
+			List<PositionListItem> items = new LinkedList<PositionListItem>();
+			for ( Position position : list ) {
+				items.add(new PositionListItem( position ) );
+			}
+			model.addAttribute("listOfPositionItems", items ) ;
+		}
+
+		/**
+		 * Populates the combo-box "items" for the referenced entity "Photo"
+		 * @param model
+		 */
+		private void populateListOfPhotoItems(Model model) {
+			List<Photo> list = photoService.findAll();
+			List<PhotoListItem> items = new LinkedList<PhotoListItem>();
+			for ( Photo photo : list ) {
+				items.add(new PhotoListItem( photo ) );
+			}
+			model.addAttribute("listOfPhotoItems", items ) ;
+		}
+		
+		
 		//--------------------------------------------------------------------------------------
 		// Request mapping
 		//--------------------------------------------------------------------------------------
@@ -90,6 +172,166 @@ public class AdminController extends AbstractController{
 			addCurrentUser(model);
 			
 			return "admin/search/form";
+		}
+		
+		
+		/**
+		 * Shows a form page in order to update an existing Appuser
+		 * @param model Spring MVC model
+		 * @param id  primary key element
+		 * @return
+		 */
+		@RequestMapping(value = "/form")
+		public String formForUpdate(Model model, HttpServletRequest request) {
+			log("Action 'formForUpdate'");
+			//--- Search current user and store it in the model 
+//			Appuser appuser = getCurrentUser();
+			Appuser appuser = appuserService.findById(Long.parseLong(request.getParameter("appuserid")));
+			populateModel( model, appuser, FormMode.UPDATE);
+			model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
+//			addCurrentUser(model);
+			return "admin/form";
+		}
+		
+		/**
+		 * Shows a form page in order to update an existing Appuser
+		 * @param model Spring MVC model
+		 * @param id  primary key element
+		 * @return
+		 */
+		@RequestMapping(value = "/deleteuser")
+		public String deleteUser(Model model, HttpServletRequest request, 
+				RedirectAttributes redirectAttrs) {
+			log("Action 'deleting user'");
+			//--- Search current user and store it in the model 
+//			Appuser appuser = getCurrentUser();
+			Appuser appuser = appuserService.findById(Long.parseLong(request.getParameter("appuserid")));
+			populateModel( model, appuser, FormMode.UPDATE);
+			
+
+			try {
+				appuserService.delete(appuser.getId());
+				redirectAttrs.addFlashAttribute("deletesucces", "1");
+			} catch (Exception e) {
+				redirectAttrs.addFlashAttribute("deletesucces", "0");
+				e.printStackTrace();
+			}
+			
+			model.addAttribute("reverseGeoloactionURL", "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false");
+//			addCurrentUser(model);
+			return "redirect:/admin/list";
+		}
+		
+		/**
+		 * 'UPDATE' action processing. <br>
+		 * This action is based on the 'Post/Redirect/Get (PRG)' pattern, so it ends by 'http redirect'<br>
+		 * @param appuser  entity to be updated
+		 * @param bindingResult Spring MVC binding result
+		 * @param model Spring MVC model
+		 * @param redirectAttributes Spring MVC redirect attributes
+		 * @param httpServletRequest
+		 * @return
+		 */
+		@RequestMapping(value = "/update" ) // GET or POST
+		public String update(@Valid Appuser appuser, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest
+				, @RequestParam(value = "image", required = false) MultipartFile image
+				) {
+			log("Action 'update'");
+			try {
+				if (!bindingResult.hasErrors()) {
+								
+					//Update the user
+					Long pid = appuserService.findById(appuser.getId()).getIdPosition();
+					appuser.setIdPosition(pid);
+					
+					Long fid = appuserService.findById(appuser.getId()).getIdPhoto();
+					appuser.setIdPhoto(fid);
+
+					Appuser appuserCreated = appuserService.update(appuser); 
+					
+					//Save the position
+					Position positionCreated = updatePosition(httpServletRequest, appuserCreated);
+					
+					//Add the image to Database column photo
+					if (!image.isEmpty()) {
+						try {
+//								validateImage(image);
+								System.out.println("image validation (jpg) succeeded...");
+						} catch (RuntimeException re) {
+						bindingResult.reject(re.getMessage());
+						return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+						}
+						 
+						try {
+							Photo afbeelding;
+							afbeelding = new Photo();
+							afbeelding.setId(Long.parseLong(String.valueOf(0)));
+							afbeelding.setComment("");
+							//dummy value for position
+							afbeelding.setIdPosition(Long.parseLong(String.valueOf(1)));
+							afbeelding.setDescription(appuserCreated.getUsername());
+							afbeelding.setThumbnail("");
+							afbeelding.setFullphoto("");
+							Calendar cal = Calendar.getInstance();
+							afbeelding.setDatetaken(cal.getTime());
+							System.out.println("afbeelding created ...");
+							
+							//Add photo to database
+							Photo afbeeldingSaved = photoService.create(afbeelding);
+							System.out.println("afbeelding saved ...");
+							
+							
+							afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+							afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+											
+							
+							//Save full image and thumbnail on server
+							saveImage( image, afbeeldingSaved);
+							
+//						    //Add the saved photoID to the appuser
+						    appuserCreated.setIdPhoto(afbeeldingSaved.getId());
+						    appuserCreated.setIdPosition(positionCreated.getId());
+						    appuserService.update(appuserCreated);
+						    System.out.println("User completly saved in DB!");
+							
+						} catch (IOException e) {
+						bindingResult.reject(e.getMessage());
+						return redirectToForm1(httpServletRequest, appuserCreated.getId() );
+						}
+						}
+					else{
+						System.out.println("image is empty, no photo upload...");
+					}
+					
+					model.addAttribute("appuser", appuserCreated);
+					model.addAttribute("appuserid",appuserCreated.getId());
+					
+					//---
+					messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
+//					return redirectToForm1(httpServletRequest, appuser.getId());
+					return "redirect:/" + "admin" + "/form?appuserid=" + appuserCreated.getId();
+
+					
+//					//--- Perform database operations
+//					Appuser appuserSaved = appuserService.update(appuser);
+//					model.addAttribute(MAIN_ENTITY_NAME, appuserSaved);
+//					//--- Set the result message
+//					messageHelper.addMessage(redirectAttributes, new Message(MessageType.SUCCESS,"save.ok"));
+//					log("Action 'update' : update done - redirect");
+//					return redirectToForm1(httpServletRequest, appuser.getId());
+				} else {
+					log("Action 'update' : binding errors");
+					populateModel( model, appuser, FormMode.UPDATE);
+//					return redirectToForm1(httpServletRequest, appuser.getId());
+					return "admin/form";
+				}
+			} catch(Exception e) {
+				messageHelper.addException(model, "appuser.error.update", e);
+				log("Action 'update' : Exception - " + e.getMessage() );
+				populateModel( model, appuser, FormMode.UPDATE);
+//				return redirectToForm1(httpServletRequest, appuser.getId());
+				return "admin/form";
+			}
 		}
 		
 		/**
@@ -134,6 +376,8 @@ public class AdminController extends AbstractController{
 			model.addAttribute("feedbacktext",feedbacktext);
 			model.addAttribute("feebackphotos",feedbackphotos);
 			
+			model.addAttribute("feedbacks", selection);
+			
 			addCurrentUser(model);
 
 			return "admin/search/form";
@@ -167,7 +411,7 @@ public class AdminController extends AbstractController{
 		public String showUserInfo(Model model, HttpServletRequest httpServletRequest,
 				@PathVariable("id") Long id) {
 			
-			System.out.println("Entering user/info/" + id);
+			System.out.println("Entering admin/info/" + id);
 			
 			Appuser appuser = appuserService.findById(id);
 			List<Feedback> feedbacks = getAllFeedback(appuser);
@@ -242,11 +486,398 @@ public class AdminController extends AbstractController{
 			return "admin/places";
 		}
 		
+		 @RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
+		    public String saveNewFeedback(
+		            @ModelAttribute("uploadForm") FileUpload uploadForm,
+		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
+		       		    	
+		    	List<Typeinfo> typeinfolist = typeinfoService.findAll();
+				map.addAttribute("typeinfolist", typeinfolist);
+		    	
+		    	String saveDirectory = servletContext.getRealPath("/");
+		        System.out.println("Files will be saved at:" + saveDirectory);
+		        
+		        //Get parameters from request
+		        String pac_input = httpServletRequest.getParameter("pac-input");
+		        String typeinfo = httpServletRequest.getParameter("typeinfo");
+		        Long typeinfoid = getTypeinfoId(typeinfo);
+		        String comment = httpServletRequest.getParameter("comment");
+		    	String country = httpServletRequest.getParameter("country");
+	    		System.out.println("country: -" + country + "-");
+	    		System.out.println("comment: -" + comment + "-");
+	    		System.out.println("typeinfo: -" + typeinfo + "-");
+	    		System.out.println("typeinfoid: -" + typeinfoid + "-");
+		    	
+		    	
+	    		String faultmessage="";
+		    	if(country.equals("country")){
+		    		faultmessage += "You have chosen an non existing location. Please choose a valid location. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("pac_input", "");
+		    	}
+		    	else{
+		    		map.addAttribute("pac_input", pac_input);
+		    	}
+		    	if(comment.length() == 0){
+		    		faultmessage += "Your tried to add an empty comment. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("comment","");
+		    	}
+		    	else{
+		    		map.addAttribute("comment",comment);
+		    	}
+		    	
+		    	
+		    	//A non valid input has been given
+		    	if(!(faultmessage.equals(""))){
+		    		map.addAttribute("message", faultmessage);
+//		    		addCorretInputToMap(pac_input, typeinfoid, comment, uploadForm, map);
+		    		System.out.println(faultmessage);
+		    		
+		    		//Add the valid input to the return page
+		    		map.addAttribute("typeinfoid", typeinfoid.toString());
+					
+					//Save the images to tempory directory
+					List<String> filenames = saveTempImages(uploadForm);
+					map.addAttribute("filenames", filenames);
+
+		    		return "admin/feedback1";
+		    	}
+		    		
+		        
+		        System.out.println("typeinfo = " + typeinfo);
+		        System.out.println("comment= " + comment);
+		        
+		      //Save the position
+				Position positionCreated = savePosition(httpServletRequest);
+				System.out.println("Postion:" + positionCreated.toString());
+				
+				//Get the date of today
+				Calendar cal = Calendar.getInstance();
+				Date today = cal.getTime();
+				
+				//Construct the feedback
+				Feedback f = new Feedback();
+				f.setId((long)0);
+				f.setComment(comment);
+				f.setIdTypeinfo(getTypeinfoId(typeinfo));
+				f.setIdPosition(positionCreated.getId());
+				f.setDatefeedback(today);
+				f.setIdUser(getCurrentUser().getId());
+				
+				//Save the feedback in DB
+				f = feedbackService.create(f);
+		 
+		        //Handle the files (images) to save
+				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+		 
+		        List<String> fileNames = new ArrayList<String>();
+		 
+		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+		            for (MultipartFile multipartFile : crunchifyFiles) {
+		            	
+		                System.out.println(multipartFile.getContentType());
+		                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+		                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                	String fileName = foto.getId() + "_FULL.jpg";
+		                	
+		                	// Handle file content - multipartFile.getInputStream()
+		                	multipartFile
+		                            .transferTo(new File(saveDirectory + fileName));
+		                    fileNames.add(fileName);
+		                }
+		            }
+		        }
+		        
+		        //Save the images from the temporary folder
+		        saveTempImagesFinal(positionCreated,f);
+		 
+		        map.addAttribute("files", new ArrayList<String>());
+		        map.addAttribute("comment","");
+		        map.addAttribute("pac_input","");
+		        map.addAttribute("typeinfoid","");
+		        map.addAttribute("succesmessage","Your feedback has been saved. <br /> Thank you for sharing your feedback. <br /> You can enter more feedback if you like.");
+		        return "admin/feedback1";
+		    }
+		    
+		    @RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
+		    public String updateFeedback(
+		            @ModelAttribute("uploadForm") FileUpload uploadForm,
+		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
+		    	List<Typeinfo> typeinfolist = typeinfoService.findAll();
+				map.addAttribute("typeinfolist", typeinfolist);
+		    	
+		    	String saveDirectory = servletContext.getRealPath("/");
+		        System.out.println("Files will be saved at:" + saveDirectory);
+		        
+		        //Get parameters from request
+		        String feedbackid = httpServletRequest.getParameter("feedbackid");
+		        Long fid = Long.parseLong(feedbackid);
+		        String pac_input = httpServletRequest.getParameter("pac-input");
+		        String typeinfo = httpServletRequest.getParameter("typeinfo");
+		        Long typeinfoid = getTypeinfoId(typeinfo);
+		        String comment = httpServletRequest.getParameter("comment");
+		    	String country = httpServletRequest.getParameter("country");
+	    		System.out.println("country: -" + country + "-");
+	    		System.out.println("comment: -" + comment + "-");
+	    		System.out.println("typeinfo: -" + typeinfo + "-");
+	    		System.out.println("typeinfoid: -" + typeinfoid + "-");
+	    		System.out.println("feedbackid: -" + fid + "-");
+		    	
+		    	
+	    		String faultmessage="";
+		    	if(country.equals("country")){
+		    		faultmessage += "You have chosen an non existing location. Please choose a valid location. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("pac_input", "");
+		    	}
+		    	else{
+		    		map.addAttribute("pac_input", pac_input);
+		    	}
+		    	if(comment.length() == 0){
+		    		faultmessage += "Your tried to add an empty comment. <br />";
+		    		System.out.println(faultmessage);
+		    		map.addAttribute("comment","");
+		    	}
+		    	else{
+		    		map.addAttribute("comment",comment);
+		    	}
+		    	
+		    	
+		    	//A non valid input has been given
+		    	if(!(faultmessage.equals(""))){
+		    		map.addAttribute("message", faultmessage);
+//		    		addCorretInputToMap(pac_input, typeinfoid, comment, uploadForm, map);
+		    		System.out.println(faultmessage);
+		    		
+		    		//Add the valid input to the return page
+		    		map.addAttribute("typeinfoid", typeinfoid.toString());
+					
+					//Save the images to tempory directory
+					List<String> filenames = saveTempImages(uploadForm);
+					map.addAttribute("filenames", filenames);
+
+		    		return "admin/feedback1/update";
+		    	}
+		    		
+		        
+		        System.out.println("typeinfo = " + typeinfo);
+		        System.out.println("comment= " + comment);
+		        
+		      //Save the position
+				Position pos = positionService.findById((feedbackService.findById(fid).getIdPosition()));
+		        Position positionCreated = updatePosition(httpServletRequest, pos);
+				System.out.println("Postion:" + positionCreated.toString());
+				
+				//Get the date of today
+				Calendar cal = Calendar.getInstance();
+				Date today = cal.getTime();
+				
+				//Construct the feedback
+				Feedback f = new Feedback();
+				f.setId(fid);
+				f.setComment(comment);
+				f.setIdTypeinfo(getTypeinfoId(typeinfo));
+				f.setIdPosition(positionCreated.getId());
+				f.setDatefeedback(today);
+				f.setIdUser(getCurrentUser().getId());
+				
+				//Save the feedback in DB
+				f = feedbackService.update(f);
+		 
+		        //Handle the files (images) to save
+				List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+		 
+		        List<String> fileNames = new ArrayList<String>();
+		 
+		        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+		            for (MultipartFile multipartFile : crunchifyFiles) {
+		            	
+		                System.out.println(multipartFile.getContentType());
+		                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+		                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+		                	String fileName = foto.getId() + "_FULL.jpg";
+		                	
+		                	// Handle file content - multipartFile.getInputStream()
+		                	multipartFile
+		                            .transferTo(new File(saveDirectory + fileName));
+		                    fileNames.add(fileName);
+		                }
+		            }
+		        }
+		        
+		        //Save the images from the temporary folder
+		        saveTempImagesFinal(positionCreated,f);
+		 
+		        map.addAttribute("files", new ArrayList<String>());
+		        map.addAttribute("comment","");
+		        map.addAttribute("pac_input","");
+		        map.addAttribute("typeinfoid","");
+		        map.addAttribute("succesmessage","Your feedback has been updated. <br /> Thank you for sharing your feedback. <br /> You can enter more feedback if you like.");
+		        return "admin/feedback1/update";
+		    }
+			
+			
+			@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
+			public ModelAndView userFeedback1Pagina() {
+
+			  ModelAndView model = new ModelAndView();
+			  model.setViewName("admin/feedback1");
+			  addCurrentUser(model);
+			  List<Typeinfo> typeinfolist = typeinfoService.findAll();
+			  model.addObject("typeinfolist", typeinfolist);
+			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
+			  model.addObject("asyncdefer"," async defer");
+			  return model;
+			}
+			
+			@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
+			public ModelAndView userFeedback1UpdatePagina(HttpServletRequest httpServletRequest) {
+				
+			 long feedbackid = Long.parseLong(httpServletRequest.getParameter("feedbackid"));
+			 Feedback feedback = feedbackService.findById(feedbackid);
+			 Position position = positionService.findById(feedback.getIdPosition());
+			 List <FeedbackPhoto> feedbackphotolist = feedbackPhotoService.findAll();
+			 List <Photo> photolist = new ArrayList <Photo>();
+			 for(FeedbackPhoto fp : feedbackphotolist){
+				 if(fp.getIdFeedback().equals(feedback.getId())){
+					 photolist.add(photoService.findById(fp.getIdPhoto()));
+				 }
+			 }
+			 
+				
+			 ModelAndView model = new ModelAndView();
+			  model.setViewName("admin/feedback1/update");
+			  addCurrentUser(model);
+			  model.addObject("googleAPIurl", "https://maps.googleapis.com/maps/api/js?key=AIzaSyAW6_kB9yFhHlKMU0wZRDrgPdlAzQjpj5c&signed_in=true&libraries=places&callback=initMap");
+			  model.addObject("asyncdefer"," async defer");
+			  model.addObject("feedback",feedback);
+			  model.addObject("position",position);
+			  
+			  List<Typeinfo> typeinfolist = typeinfoService.findAll();
+			  model.addObject("typeinfolist", typeinfolist);
+			  
+			  model.addObject("pac_input", position.getCity() + " " + position.getCountry());
+			  model.addObject("comment", feedback.getComment());
+			  model.addObject("typeinfoid",feedback.getIdTypeinfo());
+			  model.addObject("photolist",photolist);
+			  
+			  return model;
+			}
+			
+			/**
+			 * Deletes a feedback with a given id (in request)
+			 * @param model Spring MVC model
+			 * @return
+			 */
+			@RequestMapping(value="/feedback/delete", method= RequestMethod.GET)
+			public String deleteUserFeedback(Model model, HttpServletRequest httpServletRequest,
+					RedirectAttributes redirectAttrs){
+				
+				String id = httpServletRequest.getParameter("id");
+				Long feedbackid = Long.valueOf(id).longValue();
+				
+				try {
+					feedbackService.delete(feedbackid);
+					redirectAttrs.addFlashAttribute("deletesucces", "1");
+				} catch (Exception e) {
+					redirectAttrs.addFlashAttribute("deletesucces", "0");
+					e.printStackTrace();
+				}
+				
+				//redirect to the page we came from
+				String returnpage = httpServletRequest.getParameter("returnpage");
+				
+				if(returnpage.equals("admin_info")){
+					String appuserInfoId = httpServletRequest.getParameter("userid");
+//					redirectAttributes.addAttribute("id", appuserInfoId);
+//					redirectAttrs.addFlashAttribute("deletesucces", "1");
+					return "redirect:/admin/info/" + appuserInfoId;
+					
+				}
+				
+				if(returnpage.equals("admin_search_form")){
+					String appuserInfoId = httpServletRequest.getParameter("userid");
+//					redirectAttributes.addAttribute("id", appuserInfoId);
+//					redirectAttrs.addFlashAttribute("deletesucces", "1");
+					return "redirect:/admin/search/form";
+					
+				}
+				
+				return "";
+
+			}
+			
+			/**
+			 * Deletes a photo with a given id (in request)
+			 * @param model Spring MVC model
+			 * @return
+			 */
+			@RequestMapping(value="/photo/delete", method= RequestMethod.GET)
+			public String deletePhoto(Model model, HttpServletRequest httpServletRequest,
+					RedirectAttributes redirectattributes){
+				
+				String photoid = httpServletRequest.getParameter("photoid");
+				String feedbackid = httpServletRequest.getParameter("feedbackid");
+				
+				Long pid = Long.parseLong(photoid);
+				Long fid = Long.parseLong(feedbackid);
+				
+				feedbackPhotoService.delete(fid, pid);
+				
+				redirectattributes.addAttribute("feedbackid",feedbackid);
+				
+				return "redirect:/admin/feedback1/update";
+			}
+		
 		//--------------------------------------------------------------------------------------
 		//Private helper methods
 		//--------------------------------------------------------------------------------------
 		@Autowired
 	    private ServletContext servletContext;
+		
+		
+		private Photo constructPhoto(Position p, Appuser appuser, Feedback feedback){
+			Photo afbeelding = new Photo();
+			afbeelding.setId(Long.parseLong(String.valueOf(0)));
+			afbeelding.setComment("");
+			//dummy value for position
+			afbeelding.setIdPosition(p.getId());
+			afbeelding.setDescription(appuser.getUsername());
+			afbeelding.setThumbnail("");
+			afbeelding.setFullphoto("");
+			Calendar cal = Calendar.getInstance();
+			afbeelding.setDatetaken(cal.getTime());
+			System.out.println("afbeelding created ...");
+			
+			//Add photo to database
+			Photo afbeeldingSaved = photoService.create(afbeelding);
+			System.out.println("afbeelding saved with id..." + afbeeldingSaved.getId());
+			
+			
+			afbeeldingSaved.setFullphoto(afbeeldingSaved.getId() + "_FULL");
+			afbeeldingSaved.setThumbnail(afbeeldingSaved.getId() + "_THUMB");
+			
+			afbeeldingSaved = photoService.update(afbeeldingSaved);
+			
+			//Save in table Feedback_Photo
+			FeedbackPhoto fp = new FeedbackPhoto();
+			fp.setIdFeedback(feedback.getId());
+			fp.setIdPhoto(afbeeldingSaved.getId());
+			feedbackPhotoService.create(fp);
+			
+			return afbeeldingSaved;
+		}
+		
+		private long getTypeinfoId(String typeinfoname){
+			List<Typeinfo> list = typeinfoService.findAll();
+			for(Typeinfo i : list){
+				if (i.getDescription().equals(typeinfoname)){
+					return i.getId();
+				}
+			}
+		return 0;
+		}
 		
 		private Position getAppuserLastPos(Appuser appuser){
 			return positionService.findById(appuser.getIdPosition());
@@ -407,7 +1038,7 @@ public class AdminController extends AbstractController{
 			else {
 				selectedTypeinfos = typeinfos;
 			}
-			
+			System.out.println("selectedTypeinfos: " + selectedTypeinfos);
 			//get all positions in DB
 			List<Position> positions = new ArrayList<Position>();
 			positions = positionService.findAll();
@@ -425,6 +1056,7 @@ public class AdminController extends AbstractController{
 			else {
 				selectedPositionsCountry = positions;
 			}
+			System.out.println("selectedPositionsCountry: " + selectedPositionsCountry);
 			
 			//List will contain the positions of the selected country and city
 			List<Position> selectedPositionsCountryCity = new ArrayList<Position>();
@@ -439,6 +1071,7 @@ public class AdminController extends AbstractController{
 			else {
 				selectedPositionsCountryCity = selectedPositionsCountry;
 			}
+			System.out.println("selectedPositionsCountryCity: " + selectedPositionsCountryCity);
 			
 					
 			//get all feedbacks in DB
@@ -449,11 +1082,14 @@ public class AdminController extends AbstractController{
 			List<Feedback> selectedFeedbacksPosition = new ArrayList<Feedback>();
 			
 			for(Feedback f : feedbacks){
+				System.out.println("Feedback ID position: " + f.getIdPosition());
 				for(Position p : selectedPositionsCountryCity){
-					if(f.getIdPosition() == p.getId())
+					System.out.println("Position id: " + p.getId());
+					if(f.getIdPosition().equals(p.getId()))
 						selectedFeedbacksPosition.add(f);
 				}
 			}
+			System.out.println("selectedFeedbacksPosition: " + selectedFeedbacksPosition);
 			
 			//Will contain the final list with all feedbacks that answer the criteria
 			List<Feedback> selectedFeedbacksFinal = new ArrayList<Feedback>();
@@ -464,6 +1100,7 @@ public class AdminController extends AbstractController{
 					}
 				}
 			}
+			System.out.println("selectedFeedbacksFinal: " + selectedFeedbacksFinal);
 			
 			return selectedFeedbacksFinal;
 			
@@ -479,25 +1116,51 @@ public class AdminController extends AbstractController{
 			model.addAttribute("listOfCities", getCities(positions));
 			model.addAttribute("listOfTypeInfos",getAllTypeInfos(feedbacks));
 			
-			log("model populated");
+//			log("model populated");
+		}
+
+		private Appuser getAppuser(String username){
+		List<Appuser> appuser_list = appuserService.findAll();
+		for(Appuser user : appuser_list){
+			if(user.getUsername().equals(username))
+				return user;
+		}
+		return new Appuser();
 		}
 		
-		private Appuser getAppuser(String username){
-			List<Appuser> appuser_list = appuserService.findAll();
-			for(Appuser user : appuser_list){
-				if(user.getUsername().equals(username))
-					return user;
-			}
-			return new Appuser();
-			}
+		private Appuser getCurrentUser(){
+			UserDetails userDetails =
+			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			return getAppuser(userDetails.getUsername());
+		}
+		
+		
+		//add the current user
+		private void addCurrentUser(ModelAndView model){	
+			UserDetails userDetails =
+			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			model.addObject("username",userDetails.getUsername());
+			System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
+			model.addObject("appuser",getAppuser(userDetails.getUsername()));
 			
-			//add the current user
-			private void addCurrentUser(ModelAndView model){	
+			String url = "";
+			List<Appuser> allAppUsers = appuserService.findAll(); 
+			for(Appuser appuser : allAppUsers){
+				if (appuser.getUsername().equals(userDetails.getUsername())){
+					url = servletContext.getRealPath("/")
+							+ appuser.getIdPhoto() + "_THUMB.jpg";
+				}
+			}
+			model.addObject("thumburl",url);
+		}
+		
+		//add the current user
+		private void addCurrentUser(Model model){	
 				UserDetails userDetails =
 				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-				model.addObject("username",userDetails.getUsername());
+				model.addAttribute("username",userDetails.getUsername());
 				System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
-				model.addObject("appuser",getAppuser(userDetails.getUsername()));
+				model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
 				
 				String url = "";
 				List<Appuser> allAppUsers = appuserService.findAll(); 
@@ -507,25 +1170,255 @@ public class AdminController extends AbstractController{
 								+ appuser.getIdPhoto() + "_THUMB.jpg";
 					}
 				}
-				model.addObject("thumburl",url);
+				model.addAttribute("thumburl",url);
 			}
+		
+		private Position savePosition(HttpServletRequest httpServletRequest){
 			
-			//add the current user
-			private void addCurrentUser(Model model){	
-					UserDetails userDetails =
-					(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-					model.addAttribute("username",userDetails.getUsername());
-					System.out.println("appuserid=" + getAppuser(userDetails.getUsername()).getId());;
-					model.addAttribute("appuser",getAppuser(userDetails.getUsername()));
-					
-					String url = "";
-					List<Appuser> allAppUsers = appuserService.findAll(); 
-					for(Appuser appuser : allAppUsers){
-						if (appuser.getUsername().equals(userDetails.getUsername())){
-							url = servletContext.getRealPath("/")
-									+ appuser.getIdPhoto() + "_THUMB.jpg";
-						}
-					}
-					model.addAttribute("thumburl",url);
+			String lat = httpServletRequest.getParameter("latitude");
+			String lon = httpServletRequest.getParameter("longitude");
+			String city = httpServletRequest.getParameter("city");
+			String country = httpServletRequest.getParameter("country");
+			System.out.println(city + "  " + country);
+			
+			BigDecimal bdlat = new BigDecimal(lat);
+			BigDecimal bdlon = new BigDecimal(lon);
+			
+			Position pos = new Position();
+			pos.setId((long) 0);
+			pos.setLatitude(bdlat);
+			pos.setLongitude(bdlon);
+			pos.setCountry(country);
+			pos.setCity(city);
+			
+			Position positionCreated = positionService.create(pos);
+			return positionCreated;
+		}
+		
+		private Position updatePosition(HttpServletRequest httpServletRequest, Position oldpos){
+			
+			String lat = httpServletRequest.getParameter("latitude");
+			String lon = httpServletRequest.getParameter("longitude");
+			String city = httpServletRequest.getParameter("city");
+			String country = httpServletRequest.getParameter("country");
+			System.out.println(city + "  " + country);
+			
+			BigDecimal bdlat = new BigDecimal(lat);
+			BigDecimal bdlon = new BigDecimal(lon);
+			
+			Position pos = new Position();
+			pos.setId(oldpos.getId());
+			pos.setLatitude(bdlat);
+			pos.setLongitude(bdlon);
+			pos.setCountry(country);
+			pos.setCity(city);
+			
+			Position positionUpdated = positionService.save(pos);
+			return positionUpdated;
+		}
+		
+		private Position updatePosition(HttpServletRequest httpServletRequest, Appuser appuser){
+			
+			String lat = httpServletRequest.getParameter("latitude");
+			String lon = httpServletRequest.getParameter("longitude");
+			String city = httpServletRequest.getParameter("city");
+			String country = httpServletRequest.getParameter("country");
+			
+			BigDecimal bdlat = new BigDecimal(lat);
+			BigDecimal bdlon = new BigDecimal(lon);
+			
+			Position pos = positionService.findById((appuser.getIdPosition()));
+			pos.setLatitude(bdlat);
+			pos.setLongitude(bdlon);
+			pos.setCountry(country);
+			pos.setCity(city);
+			
+			System.out.println(city + "  " + country);
+			
+			Position positionUpdated = positionService.update(pos);
+			return positionUpdated;
+		}
+		
+		private void saveImage(MultipartFile image, Photo afbeelding)
+				throws RuntimeException, IOException {
+				try {
+				File file = new File(servletContext.getRealPath("/") + "/"
+				+ afbeelding.getFullphoto() + ".jpg");
+				 
+				//Save the full photo
+				FileUtils.writeByteArrayToFile(file, image.getBytes());
+				System.out.println("Go to the location:  " + file.toString()
+				+ " on your computer and verify that the image has been stored.");
+				
+				//Convert the full image to thumbnail
+				byte [] byteArr=image.getBytes();
+				// convert byte array to BufferedImage
+				InputStream in = new ByteArrayInputStream(byteArr);
+				BufferedImage buffimg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+				buffimg = ImageIO.read(in);
+				Image img = buffimg;
+				
+				BufferedImage thumbCreated = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+				thumbCreated.createGraphics().drawImage(img.getScaledInstance(100, 100, Image.SCALE_SMOOTH),0,0,null);
+
+				//Save the bufferedimage
+				File outputfile = new File(servletContext.getRealPath("/") + "/"
+						+ afbeelding.getThumbnail() + ".jpg");
+			    ImageIO.write(thumbCreated, "jpg", outputfile);
+			    
+			    photoService.save(afbeelding);
+
+				} catch (IOException e) {
+				throw e;
 				}
+				}
+		
+		private void validateImage(MultipartFile image) {
+			if (!image.getContentType().equals("image/jpg")) {
+			throw new RuntimeException("Only JPG images are accepted");
+			}
+			}
+		
+		/**
+		 * Returns "redirect:/entityName/form/id1/id2/..." 
+		 * @param httpServletRequest
+		 * @param idParts
+		 * @return
+		 */
+		private String redirectToForm1(HttpServletRequest httpServletRequest, Object... idParts) {
+			return "redirect:" + getFormURL1(httpServletRequest, idParts);
+		}
+		
+		/**
+		 * Returns "/entityName/form/id1/id2/..." 
+		 * @param httpServletRequest
+		 * @param idParts
+		 * @return
+		 */
+		private String getFormURL1(HttpServletRequest httpServletRequest, Object... idParts) {
+			return "/" + "admin" + "/form?appuserid=" + httpServletRequest.getParameter("appuserid");
+//			return "/" + "admin" + "/form/" + encodeUrlPathSegments(httpServletRequest, idParts );
+		}
+		
+		private List<String> saveTempImages(FileUpload uploadForm ) throws IllegalStateException, IOException{
+			
+			String saveDirectory = servletContext.getRealPath("/");
+			saveDirectory += "TempImages\\";
+	        System.out.println("Files will be saved at:" + saveDirectory);
+	        
+	        //create folder
+//	        makeDirectory(saveDirectory);
+			
+	        
+	        //Handle the files (images) to save
+			List<MultipartFile> crunchifyFiles = uploadForm.getFiles();
+	 
+	        List<String> fileNames = new ArrayList<String>();
+	 
+	        if (null != crunchifyFiles && crunchifyFiles.size() > 0) {
+	        	int i = 0;
+	            for (MultipartFile multipartFile : crunchifyFiles) {
+	            	
+	            	
+	                System.out.println(multipartFile.getContentType());
+	                if (multipartFile.getSize()>0 && multipartFile.getContentType().equals("image/jpeg")) {
+//	                	Photo foto = constructPhoto(positionCreated,getCurrentUser(),f);
+	                	String fileName = "temp" + i  + ".jpg";
+	                	System.out.println(saveDirectory + fileName);
+	                	// Handle file content - multipartFile.getInputStream()
+	                	multipartFile
+	                            .transferTo(new File(saveDirectory + fileName));
+	                    fileNames.add(fileName);
+	                    i++;
+	                }
+	            }
+	        }
+	        return fileNames;
+		}
+		
+		private void addCorretInputToMap(String pac_input, Long typeinfoid, 
+				String comment, FileUpload uploadForm, Model map) throws IllegalStateException, IOException{
+			map.addAttribute("pac_input", pac_input);
+			map.addAttribute("typeinfoid", typeinfoid);
+			map.addAttribute("comment",comment);
+			
+			//Save the images to tempory directory
+			List<String> filenames = saveTempImages(uploadForm);
+			map.addAttribute("filenames", filenames);
+			
+		}
+		
+		//Overwrite an existing directory, i.e. delete if exists and create new version
+		private boolean makeDirectory(String path){
+		    if (Files.exists(Paths.get(path))) {
+		        try {
+		            FileUtils.deleteDirectory(new File(path));
+		        }
+		        catch (IOException ex) {
+		            System.err.println("Failed to create directory!");
+		            return false;
+		        }
+		    }    
+		    if (new File(path).mkdir()) {
+		        return true;
+		    }
+		    return false;
+		}
+		
+		private void saveTempImagesFinal(Position positionCreated, Feedback feedback) throws IOException{
+			
+			renameAllTempFiles(positionCreated,feedback);
+			
+			String saveDirectory = servletContext.getRealPath("/");
+			System.out.println("Directory to copy to:" + saveDirectory);
+			String saveDirectoryTemp = saveDirectory += "TempImages\\";
+			System.out.println("Directory to copy from:" + saveDirectoryTemp);
+			
+			File tempdir = new File(saveDirectoryTemp);
+			File savedir = new File(saveDirectory);
+							
+			System.out.println("List of temp files: " + tempdir.listFiles().toString());
+			
+			if (tempdir.isDirectory()) {
+			    for (File f : tempdir.listFiles()) {
+			    	
+			    	System.out.println("moving file: " + f.getName() + " to " + savedir.getPath());
+			    	
+					FileUtils.moveToDirectory(f, new File( servletContext.getRealPath("/")), false);
+
+			    	System.out.println("File copied:" + f.getName() + " to " + savedir.getPath());
+			    }
+			}
+		}
+		
+		private void renameAllTempFiles(Position positionCreated, Feedback feedback){
+			
+			String saveDirectory = servletContext.getRealPath("/");
+			String saveDirectoryTemp = saveDirectory += "TempImages\\";
+			
+			File tempdir = new File(saveDirectoryTemp);
+			File savedir = new File(saveDirectory);
+
+			if (tempdir.isDirectory()) { // make sure it's a directory
+			    for (final File f : tempdir.listFiles()) {
+			        if (f.getName().startsWith("temp")) {
+						try {
+							Photo foto = constructPhoto(positionCreated, getCurrentUser(), feedback);
+							String fileName = foto.getId() + "_FULL.jpg";
+
+							File newfile = new File(saveDirectoryTemp + fileName);
+
+							if (f.renameTo(newfile)) {
+								System.out.println("Rename succesful");
+							} else {
+								System.out.println("Rename failed");
+							}
+						} catch (Exception e) {
+							// TODO: handle exception
+							e.printStackTrace();
+						} 
+					}
+			    }
+			}
+		}
 }

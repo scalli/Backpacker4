@@ -22,12 +22,12 @@
         <!-- Collection of nav links and other content for toggling -->
         <div id="navbarCollapse" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="/backpacker4/user/home">Home</a></li>
-                <li class="active"><a href="/backpacker4/user/feedback1">Your feedback</a></li>
-                <li><a href="/backpacker4/user/search/form">Search</a></li>
-               <li><a href="/backpacker4/user/places">Where are we?</a></li>
-                <li><a href="/backpacker4/user/list">Who are we?</a></li>
-                <li><a href="/backpacker4/user/form">Profile</a></li>
+                <li><a href="/backpacker4/admin/home">Home</a></li>
+                <li  class="active"><a href="/backpacker4/admin/feedback1">Your feedback</a></li>
+                <li><a href="/backpacker4/admin/search/form">Search</a></li>
+                <li><a href="/backpacker4/admin/places">Where are we?</a></li>
+                <li ><a href="/backpacker4/admin/list">Who are we?</a></li>
+                <li><a href="/backpacker4/admin/form">Profile</a></li>
             </ul>
         </div>
     </nav>
@@ -62,9 +62,8 @@
 			</div>
 		</c:if>
 	  </div>
-    <form:form method="POST" action="/backpacker4/user/feedback1/updatefiles?${_csrf.parameterName}=${_csrf.token}"
+    <form:form method="POST" action="/backpacker4/admin/feedback1/savefiles?${_csrf.parameterName}=${_csrf.token}"
             modelAttribute="uploadForm" enctype="multipart/form-data">
-    <input type="hidden" id="feedbackid" name="feedbackid" value="${feedback.id}" />
     <div class="row">
     <div class="container, col-sm-12">
     <input id="pac-input" name="pac-input" value="${pac_input}" class="controls" type="text" onchange="getPosition()" placeholder="Enter a location" required="required"/>
@@ -88,13 +87,13 @@
 <div class="container">
 					<div class="form-group">
 <!-- 						<label for="latitude">latitude:</label> -->
-						<input type="hidden" name="latitude" id="latitude" value="${position.latitude}" /> 
+						<input type="hidden" name="latitude" id="latitude" value="latitude" /> 
 <!-- 						<label for="longitude">longitude:</label> -->
-						<input type="hidden" name="longitude" id="longitude" value="${position.longitude}" /> 
+						<input type="hidden" name="longitude" id="longitude" value="longitude" /> 
 <!-- 						<label for="country">country:</label> -->
-						<input type="hidden" name="country" id="country" value="${position.country}" /> 
+						<input type="hidden" name="country" id="country" value="country" /> 
 <!-- 						<label for="city">city:</label> -->
-						<input type="hidden" name="city" id="city" value="${position.city }" /> 
+						<input type="hidden" name="city" id="city" value="city" /> 
 					</div>
 				</div>
 	</div>
@@ -142,14 +141,6 @@
 		<c:forEach items="${filenames}" var="item" varStatus="loop">
             <div class="thumbnail, col-sm-1" heigth="150">
 				<img src="${pageContext.request.contextPath}/TempImages/${item}" width="100%" alt="no picture available"/>
-			</div>
-         </c:forEach>
-         <c:forEach items="${photolist}" var="photo" varStatus="loop">
-            <div class="thumbnail, col-sm-1" heigth="150">
-				<img src="${pageContext.request.contextPath}/${photo.id}_FULL.jpg" width="100%" alt="no picture available"/>
-				<a class="btn btn-danger btn-xs" href="/backpacker4/user/photo/delete?feedbackid=${feedback.id}&amp;photoid=${photo.id}">
-				  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-				</a>
 			</div>
          </c:forEach>
 		</div>

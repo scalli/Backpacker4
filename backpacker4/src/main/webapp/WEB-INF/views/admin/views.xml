@@ -20,4 +20,13 @@
 	<definition extends="default" name="admin/places">
 		<put-attribute name="body" value="/WEB-INF/views/admin/admin_places.jspx" />
 	</definition>
+	<definition extends="default" name="admin/feedback1/update">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_feedback1_update.jspx" />
+	</definition>
+	<definition extends="default" name="admin/feedback1">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_feedback1.jspx" />
+	</definition>
+	<definition extends="default" name="admin/form">
+		<put-attribute name="body" value="/WEB-INF/views/admin/admin_form.jspx" />
+	</definition>
 </tiles-definitions>

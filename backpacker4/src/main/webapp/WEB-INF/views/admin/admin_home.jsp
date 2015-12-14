@@ -23,11 +23,11 @@
         <div id="navbarCollapse" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="/backpacker4/admin/home">Home</a></li>
-                <li><a href="/backpacker4/admin/feedback">Your feedback</a></li>
+                <li><a href="/backpacker4/admin/feedback1">Your feedback</a></li>
                 <li><a href="/backpacker4/admin/search/form">Search</a></li>
                 <li><a href="/backpacker4/admin/places">Where are we?</a></li>
                 <li ><a href="/backpacker4/admin/list">Who are we?</a></li>
-                <li><a href="/backpacker4/register/form/${appuser.id}">Profile</a></li>
+                <li><a href="/backpacker4/admin/form">Profile</a></li>
             </ul>
         </div>
     </nav>
@@ -99,7 +99,7 @@ function getCity1 (lat,lng,country,appuserid,latlng, geocoder) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//          alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {
@@ -139,7 +139,7 @@ function getCountry1(lat,lng,appuserid,latlng, geocoder) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//          alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {
@@ -171,18 +171,20 @@ function getCountry1(lat,lng,appuserid,latlng, geocoder) {
 	function doAjaxPost(lng,lat,country,city,appuserid) {
 
 	var params = "longitude="+lng + "&latitude=" + lat + "&country=" + country + "&city=" + city + "&appuserid=" + appuserid;
-	alert("params: " + params);
+// 	alert("params: " + params);
 	$.ajax({
         type: "GET",
         url: "/backpacker4/Ajax/SaveLocation",
         data: params,
         success: function(response){
         // we have the response
-        alert("response:" + response);
+//         alert("response:" + response);
         if (response == false) {
-               alert("failed");
+//                alert("failed");
            }
-        else {alert("succes")}
+        else {
+//         	alert("succes")
+		}
 			 },
 		error: function(e){
 		alert('Error: ' + e);
