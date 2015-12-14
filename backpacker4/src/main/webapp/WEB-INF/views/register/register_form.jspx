@@ -124,14 +124,14 @@
 				
 				<div class="container">
 					<div class="form-group">
-						<label for="latitude">latitude:</label>
-						<input type="text" name="latitude" id="latitude" value="latitude" /> 
-						<label for="longitude">longitude:</label>
-						<input type="text" name="longitude" id="longitude" value="longitude" /> 
-						<label for="country">country:</label>
-						<input type="text" name="country" id="country" value="country" /> 
-						<label for="city">city:</label>
-						<input type="text" name="city" id="city" value="city" /> 
+<!-- 						<label for="latitude">latitude:</label> -->
+						<input type="hidden" name="latitude" id="latitude" value="latitude" /> 
+<!-- 						<label for="longitude">longitude:</label> -->
+						<input type="hidden" name="longitude" id="longitude" value="longitude" /> 
+<!-- 						<label for="country">country:</label> -->
+						<input type="hidden" name="country" id="country" value="country" /> 
+<!-- 						<label for="city">city:</label> -->
+						<input type="hidden" name="city" id="city" value="city" /> 
 					</div>
 				</div>
 
@@ -169,14 +169,14 @@ $('#appuser_username').change(doAjaxPost);
 function doAjaxPost() {
 	        // get the form values
       		var name = $('#appuser_username').val();
-	        alert("naam opgehaald:" + name);
+// 	        alert("naam opgehaald:" + name);
 	        $.ajax({
 	        type: "GET",
 	        url: "/backpacker4/Ajax/CheckUsername",
 	        data: "name=" + name,
 	        success: function(response){
 	        // we have the response
-	        alert("response:" + response);
+// 	        alert("response:" + response);
 	        if (response == false) {
                    $("#username_message").html("Duplicate username, choose another");
                }
@@ -340,7 +340,7 @@ function showPosition(position) {
 					position : googlePos
 				};
 				var popup = new google.maps.InfoWindow(popOpts);
-				alert("showPosition");
+// 				alert("showPosition");
 				google.maps.event.addListener(googleMarker, 'click', function() {
 					popup.open(googleMap);
 			});
@@ -383,7 +383,7 @@ function codeLatLng(lat, lng) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//          alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {

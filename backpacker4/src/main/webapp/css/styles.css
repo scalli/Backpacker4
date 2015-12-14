@@ -26,7 +26,15 @@
         width: 700px;
 }
 
-.mythumbnail img { min-height:200px; height:150px; }
+.mythumbnail img {  
+				   height:150px; 
+				   width: 150px;
+}
+
+.myicon img {
+max-height:50px; 
+max-width: 40px;
+}
 
 #rcorners2 {
     border-radius: 25px;

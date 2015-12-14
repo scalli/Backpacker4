@@ -64,6 +64,9 @@
 			<ul class="nav navbar-nav languages">
  				<spring:url value="/j_spring_security_logout" var="url_logout" />
  				<li><a class="navbar-brand" href="${url_logout}"><spring:message code="logout"/></a></li>
+ 				<li class="myicon">
+					<img src="${pageContext.request.contextPath}/${appuser.idPhoto}_FULL.jpg" width="100%" alt=""/>
+				</li>
 			</ul>
         </div>
       </div>

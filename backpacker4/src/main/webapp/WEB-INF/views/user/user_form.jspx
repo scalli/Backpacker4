@@ -186,14 +186,14 @@ $('#appuser_username').change(doAjaxPost);
 function doAjaxPost() {
 	        // get the form values
       		var name = $('#appuser_username').val();
-	        alert("naam opgehaald:" + name);
+// 	        alert("naam opgehaald:" + name);
 	        $.ajax({
 	        type: "GET",
 	        url: "/backpacker4/Ajax/CheckUsername",
 	        data: "name=" + name,
 	        success: function(response){
 	        // we have the response
-	        alert("response:" + response);
+// 	        alert("response:" + response);
 	        if (response == false) {
                    $("#username_message").html("Duplicate username, choose another");
                }
@@ -357,7 +357,7 @@ function showPosition(position) {
 					position : googlePos
 				};
 				var popup = new google.maps.InfoWindow(popOpts);
-				alert("showPosition");
+// 				alert("showPosition");
 				google.maps.event.addListener(googleMarker, 'click', function() {
 					popup.open(googleMap);
 			});
@@ -400,7 +400,7 @@ function codeLatLng(lat, lng) {
         console.log("results : " + results);
         if (results[1]) {
          //formatted address
-         alert(results[0].formatted_address);
+//          alert(results[0].formatted_address);
         //find country name
          for (var i=0; i < results[0].address_components.length; i++) {
             for (var b=0;b < results[0].address_components[i].types.length;b++) {
