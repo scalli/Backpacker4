@@ -1295,7 +1295,7 @@ public class UserController extends AbstractController {
 		        System.out.println("Files will be saved at:" + saveDirectory);
 		        
 		        //create folder
-//		        makeDirectory(saveDirectory);
+		        makeDirectory(saveDirectory);
 				
 		        
 		        //Handle the files (images) to save
@@ -1338,19 +1338,31 @@ public class UserController extends AbstractController {
 			
 			//Overwrite an existing directory, i.e. delete if exists and create new version
 			private boolean makeDirectory(String path){
-			    if (Files.exists(Paths.get(path))) {
-			        try {
-			            FileUtils.deleteDirectory(new File(path));
-			        }
-			        catch (IOException ex) {
-			            System.err.println("Failed to create directory!");
-			            return false;
-			        }
-			    }    
-			    if (new File(path).mkdir()) {
-			        return true;
-			    }
-			    return false;
+				File file = new File(path);
+				if (!file.exists()) {
+					if (file.mkdir()) {
+						System.out.println("Directory is created!");
+						return true;
+					} else {
+						System.out.println("Failed to create directory!");
+						return true;
+					}
+				}
+				return false;
+				
+//			    if (Files.exists(Paths.get(path))) {
+//			        try {
+//			            FileUtils.deleteDirectory(new File(path));
+//			        }
+//			        catch (IOException ex) {
+//			            System.err.println("Failed to create directory!");
+//			            return false;
+//			        }
+//			    }    
+//			    if (new File(path).mkdir()) {
+//			        return true;
+//			    }
+//			    return false;
 			}
 			
 			private void saveTempImagesFinal(Position positionCreated, Feedback feedback) throws IOException{
