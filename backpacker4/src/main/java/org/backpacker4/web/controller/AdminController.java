@@ -71,10 +71,6 @@ public class AdminController extends AbstractController{
 		private static final String JSP_FORM   = "search/form";
 		private static final String JSP_LIST   = "search/list";
 
-		//--- SAVE ACTION ( in the HTML form )
-//		private static final String SAVE_ACTION_CREATE   = "/register/create";
-//		private static final String SAVE_ACTION_UPDATE   = "/register/update";
-
 		//--- Main entity service
 		@Resource
 		private FeedbackPhotoService feedbackPhotoService;
@@ -178,7 +174,7 @@ public class AdminController extends AbstractController{
 		/**
 		 * Shows a form page in order to update an existing Appuser
 		 * @param model Spring MVC model
-		 * @param id  primary key element
+		 * @param request  HttpServletRequest
 		 * @return
 		 */
 		@RequestMapping(value = "/form")
@@ -194,9 +190,10 @@ public class AdminController extends AbstractController{
 		}
 		
 		/**
-		 * Shows a form page in order to update an existing Appuser
+		 * Shows a form page in order to delete an existing Appuser
 		 * @param model Spring MVC model
-		 * @param id  primary key element
+		 * @param redirectAttributes Spring MVC redirect attributes
+		 * @param httpServletRequest
 		 * @return
 		 */
 		@RequestMapping(value = "/deleteuser")
@@ -335,8 +332,9 @@ public class AdminController extends AbstractController{
 		}
 		
 		/**
-		 * Shows the results of feedbacks by criteria
+		 * Shows the results of feedbacks by criteria (city, country, typinfo)
 		 * @param model Spring MVC model
+		 * @param httpServletRequest
 		 * @return
 		 */
 		@RequestMapping("/search/results")
@@ -386,6 +384,7 @@ public class AdminController extends AbstractController{
 		/**
 		 * Shows the list of all users of backpackworld
 		 * @param model Spring MVC model
+		 * @param httpServletRequest
 		 * @return
 		 */
 		@RequestMapping("/list")
@@ -405,6 +404,8 @@ public class AdminController extends AbstractController{
 		/**
 		 * Shows the info of a user of Backpackworld
 		 * @param model Spring MVC model
+		 * @param httpServletRequest
+		 * @param id The userid of the requested user
 		 * @return
 		 */
 		@RequestMapping(value="/info/{id}", method= RequestMethod.GET)
@@ -458,6 +459,7 @@ public class AdminController extends AbstractController{
 		/**
 		 * Shows the info of all places visited by users
 		 * @param model Spring MVC model
+		 * @param httpServletRequest
 		 * @return
 		 */
 		@RequestMapping(value="/places", method= RequestMethod.GET)
@@ -486,7 +488,14 @@ public class AdminController extends AbstractController{
 			return "admin/places";
 		}
 		
-		 @RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
+		/**
+		 * Saves a new feedback in the database
+		 * @param FileUpload containing all the .jpg-images ready for upload
+		 * @param model Spring MVC model
+		 * @param httpServletRequest
+		 * @return
+		 */ 
+		@RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
 		    public String saveNewFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
@@ -600,7 +609,15 @@ public class AdminController extends AbstractController{
 		        return "admin/feedback1";
 		    }
 		    
-		    @RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
+		    
+		/**
+		 * Updates a feedback in the database
+		 * @param FileUpload containing all the .jpg-images ready for upload
+		 * @param model Spring MVC model
+		 * @param httpServletRequest
+		 * @return
+		 */
+		@RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
 		    public String updateFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
@@ -718,7 +735,11 @@ public class AdminController extends AbstractController{
 		    }
 			
 			
-			@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
+		/**
+		 * Shows the page for entering new feedback
+		 * @return
+		 */	
+		@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
 			public ModelAndView userFeedback1Pagina() {
 
 			  ModelAndView model = new ModelAndView();
@@ -731,7 +752,11 @@ public class AdminController extends AbstractController{
 			  return model;
 			}
 			
-			@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
+		/**
+		 * Shows the page for updating feedback
+		 * @return
+		 */	
+		@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
 			public ModelAndView userFeedback1UpdatePagina(HttpServletRequest httpServletRequest) {
 				
 			 long feedbackid = Long.parseLong(httpServletRequest.getParameter("feedbackid"));
@@ -768,6 +793,8 @@ public class AdminController extends AbstractController{
 			/**
 			 * Deletes a feedback with a given id (in request)
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @param RedirectAttributes
 			 * @return
 			 */
 			@RequestMapping(value="/feedback/delete", method= RequestMethod.GET)
@@ -811,6 +838,8 @@ public class AdminController extends AbstractController{
 			/**
 			 * Deletes a photo with a given id (in request)
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @param RedirectAttributes
 			 * @return
 			 */
 			@RequestMapping(value="/photo/delete", method= RequestMethod.GET)

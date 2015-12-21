@@ -19,12 +19,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+
+/**
+ * Spring MVC controller for 'Login' management.
+ */
 @Controller
 public class LoginController {
 	
 	@Resource
 	AppuserService appuserService;
 
+	/**
+	 * Redirects to the welcome page
+	 * @return
+	 */
 	@RequestMapping(value = { "/", "/welcome**" }, method = RequestMethod.GET)
 	public ModelAndView defaultPage() {
 
@@ -36,6 +44,10 @@ public class LoginController {
 
 	}
 
+	/**
+	 * Redirects to the admin homepage
+	 * @return
+	 */
 	@RequestMapping(value = "/admin/home", method = RequestMethod.GET)
 	public ModelAndView adminPagina() {
 
@@ -49,6 +61,10 @@ public class LoginController {
 	  return model;
 	}
 	
+	/**
+	 * Redirects to the user homepage
+	 * @return
+	 */
 	@RequestMapping(value = "/user/home", method = RequestMethod.GET)
 	public ModelAndView userPagina() {
 
@@ -62,6 +78,10 @@ public class LoginController {
 	  return model;
 	}
 	
+	/**
+	 * Redirects to user login page
+	 * @return
+	 */
 	@RequestMapping(value = "/index", method = RequestMethod.GET)
 	public ModelAndView indexPagina() {
 
@@ -74,6 +94,10 @@ public class LoginController {
 
 	}
 	
+	/**
+	 * Redirects to admin login page
+	 * @return
+	 */
 	@RequestMapping(value = "/admin**", method = RequestMethod.GET)
 	public ModelAndView adminPage() {
 
@@ -86,6 +110,10 @@ public class LoginController {
 
 	}
 
+	/**
+	 * Redirects after attempt to login
+	 * @return
+	 */
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public ModelAndView login(@RequestParam(value = "error", required = false) String error,
 		@RequestParam(value = "logout", required = false) String logout) {
@@ -125,6 +153,10 @@ public class LoginController {
 	@Autowired
     private ServletContext servletContext;
 	
+//---------------------------------------------------------------------------------------
+//Private helper methods	
+//---------------------------------------------------------------------------------------
+
 	//add the current user
 	private void addCurrentUserURL(ModelAndView model){	
 			UserDetails userDetails =
@@ -142,6 +174,7 @@ public class LoginController {
 			model.addObject("thumburl",url);
 	}
 	
+	//get the current user as an Appuser object
 	private Appuser getAppuser(String username){
 		List<Appuser> appuser_list = appuserService.findAll();
 		for(Appuser user : appuser_list){
@@ -151,7 +184,7 @@ public class LoginController {
 		return new Appuser();
 		}
 		
-		//add the current user
+		//add the current user to the modelandview
 		private void addCurrentUser(ModelAndView model){	
 			UserDetails userDetails =
 			(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -170,7 +203,7 @@ public class LoginController {
 			model.addObject("thumburl",url);
 		}
 		
-		//add the current user
+		//add the current user to the model
 		private void addCurrentUser(Model model){	
 				UserDetails userDetails =
 				(UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();

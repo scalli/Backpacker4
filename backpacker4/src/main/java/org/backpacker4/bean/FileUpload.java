@@ -1,3 +1,6 @@
+/**
+ * Bean used to represent multiples files (images) being uploaded.
+ */
 package org.backpacker4.bean;
 
 import java.util.List;

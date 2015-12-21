@@ -197,7 +197,7 @@ public class UserController extends AbstractController {
 			/**
 			 * Shows a form page in order to update an existing Appuser
 			 * @param model Spring MVC model
-			 * @param id  primary key element
+			 * @param request  HttpServletRequest
 			 * @return
 			 */
 			@RequestMapping(value = "/form")
@@ -322,8 +322,9 @@ public class UserController extends AbstractController {
 			}
 			
 			/**
-			 * Shows the results of feedbacks by criteria
+			 * Shows the results of feedbacks by criteria (city, country, typinfo)
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
 			 * @return
 			 */
 			@RequestMapping("/search/results")
@@ -373,6 +374,7 @@ public class UserController extends AbstractController {
 			/**
 			 * Shows the list of all users of backpackworld
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
 			 * @return
 			 */
 			@RequestMapping("/list")
@@ -392,6 +394,8 @@ public class UserController extends AbstractController {
 			/**
 			 * Shows the info of a user of Backpackworld
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @param id The userid of the requested user
 			 * @return
 			 */
 			@RequestMapping(value="/info/{id}", method= RequestMethod.GET)
@@ -445,6 +449,7 @@ public class UserController extends AbstractController {
 			/**
 			 * Shows the info of all places visited by users
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
 			 * @return
 			 */
 			@RequestMapping(value="/places", method= RequestMethod.GET)
@@ -474,7 +479,14 @@ public class UserController extends AbstractController {
 			}
 			
 			 
-		    @RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
+			/**
+			 * Saves a new feedback in the database
+			 * @param FileUpload containing all the .jpg-images ready for upload
+			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @return
+			 */
+			@RequestMapping(value = "feedback1/savefiles", method = RequestMethod.POST)
 		    public String saveNewFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
@@ -588,7 +600,14 @@ public class UserController extends AbstractController {
 		        return "user/feedback1";
 		    }
 		    
-		    @RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
+			/**
+			 * Updates a feedback in the database
+			 * @param FileUpload containing all the .jpg-images ready for upload
+			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @return
+			 */
+			@RequestMapping(value = "feedback1/updatefiles", method = RequestMethod.POST)
 		    public String updateFeedback(
 		            @ModelAttribute("uploadForm") FileUpload uploadForm,
 		            Model map, HttpServletRequest httpServletRequest) throws IllegalStateException, IOException {
@@ -705,7 +724,10 @@ public class UserController extends AbstractController {
 		        return "user/feedback1/update";
 		    }
 			
-			
+			/**
+			 * Shows the page for entering new feedback
+			 * @return
+			 */
 			@RequestMapping(value = "/feedback1", method = RequestMethod.GET)
 			public ModelAndView userFeedback1Pagina() {
 
@@ -719,6 +741,10 @@ public class UserController extends AbstractController {
 			  return model;
 			}
 			
+			/**
+			 * Shows the page for updating feedback
+			 * @return
+			 */	
 			@RequestMapping(value = "/feedback1/update", method = RequestMethod.GET)
 			public ModelAndView userFeedback1UpdatePagina(HttpServletRequest httpServletRequest) {
 				
@@ -756,6 +782,8 @@ public class UserController extends AbstractController {
 			/**
 			 * Deletes a feedback with a given id (in request)
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @param RedirectAttributes
 			 * @return
 			 */
 			@RequestMapping(value="/feedback/delete", method= RequestMethod.GET)
@@ -799,6 +827,8 @@ public class UserController extends AbstractController {
 			/**
 			 * Deletes a photo with a given id (in request)
 			 * @param model Spring MVC model
+			 * @param httpServletRequest
+			 * @param RedirectAttributes
 			 * @return
 			 */
 			@RequestMapping(value="/photo/delete", method= RequestMethod.GET)
@@ -1350,19 +1380,6 @@ public class UserController extends AbstractController {
 				}
 				return false;
 				
-//			    if (Files.exists(Paths.get(path))) {
-//			        try {
-//			            FileUtils.deleteDirectory(new File(path));
-//			        }
-//			        catch (IOException ex) {
-//			            System.err.println("Failed to create directory!");
-//			            return false;
-//			        }
-//			    }    
-//			    if (new File(path).mkdir()) {
-//			        return true;
-//			    }
-//			    return false;
 			}
 			
 			private void saveTempImagesFinal(Position positionCreated, Feedback feedback) throws IOException{

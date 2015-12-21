@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-
+/**
+ * Spring MVC controller for handling Ajax requests.
+ */
 @Controller
 @RequestMapping("/Ajax")
 public class AjaxController {
@@ -32,6 +34,12 @@ public class AjaxController {
 	@Resource
     private PositionService positionService; // Injected by Spring
 
+	/**
+	 * Checks if a given username already exists
+	 * @param request  HttpServletRequest
+	 * @param String name the username to check
+	 * @return
+	 */
 	@RequestMapping(value = "/CheckUsername", method = RequestMethod.GET)
 	@ResponseBody
 	public boolean isValidUsername (HttpServletResponse response, 
@@ -45,6 +53,12 @@ public class AjaxController {
 		return true;
 	}
 	
+	/**
+	 * Saves a location in the database
+	 * @param request  HttpServletRequest
+	 * @param response HttpServletResponse
+	 * @return
+	 */
 	@RequestMapping(value = "/SaveLocation", method = RequestMethod.GET)
 	@ResponseBody
 	public boolean saveLocation (HttpServletRequest request, HttpServletResponse response) {
@@ -65,6 +79,7 @@ public class AjaxController {
 	//-------------------------------------------------------------------------
 	//Private helper methods
 	//-------------------------------------------------------------------------
+	//Method to do the actual saving of the location in the database
 	private Position updatePosition(HttpServletRequest httpServletRequest, Appuser appuser){
 			
 			String lat = httpServletRequest.getParameter("latitude");
